@@ -64,10 +64,11 @@ function Invoke-AuthorizationPKCEFlow {
 
     # prompt user to authenticate
     Start-Process $authPage
-    Write-Host 'Opening authentication page in your web browser...'
+    Write-Information 'Opening authentication page in your web browser...'
 
     # start our listener to catch redirected code
     $srv = [System.Net.HttpListener]::New()
+    if ($rURI[-1] -ne '/') { $rURI += '/' }
     try {
         $srv.Prefixes.Add($rURI)
         $srv.Start()
@@ -87,7 +88,7 @@ function Invoke-AuthorizationPKCEFlow {
         $srv.Close()
     }
 
-    Write-Host "Authentication complete"
+    Write-Information "Authentication complete"
 
     # get access token
     $params = @{

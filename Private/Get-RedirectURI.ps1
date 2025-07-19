@@ -1,8 +1,5 @@
 function Get-RedirectURI {
-    param(
-        [Parameter(Mandatory=$true)]
-        [hashtable]$Params
-    )
+    param( [hashtable] $Params )
     $config = @{}
     if (! $Params.RedirectURI) {
         $pathExists = Test-Path $Params.ConfigFile -ErrorAction SilentlyContinue

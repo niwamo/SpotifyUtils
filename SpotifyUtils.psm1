@@ -47,7 +47,6 @@ if ($functionsAdded -or $functionsRemoved -or $aliasesAdded -or $aliasesRemoved)
 }
 
 # Module-Level Variables
-$script:MODULEOUTPUTDIR = "$PSScriptRoot\Output"
 $script:CONFIGFILE      = "$PSScriptRoot\.env.json"
 
 $script:AUTH_URI        = 'https://accounts.spotify.com/authorize'
@@ -55,13 +54,13 @@ $script:TOKEN_URI       = 'https://accounts.spotify.com/api/token'
 $script:BASE_URI        = 'https://api.spotify.com/v1'
 $script:MYTRACKS_URI    = "$script:BASE_URI/me/tracks"
 $script:MYPLAYLISTS_URI = "$script:BASE_URI/me/playlists"
+$script:SEARCH_URI      = "$script:BASE_URI/search"
 
-$script:TOKENS =  [System.Collections.ArrayList]::New()
+$script:API_DELAY       = 250 # milliseconds between API calls (avoid rate limiting)
 
-foreach ($Path in @(
-    $script:MODULEOUTPUTDIR
-)) {
-    if (!(Test-Path -Path $Path)) {
-        New-Item -ItemType Directory -Path $Path
-    }
-}
+$script:TOKENS          =  [System.Collections.ArrayList]::New()
+$script:ALL_SCOPES      = @('playlist-read-private', 'playlist-read-collaborative',
+                            'user-library-read', 'user-library-modify')
+
+$ESC                    = [char]27
+$script:GREEN           = "$ESC[35;92m"

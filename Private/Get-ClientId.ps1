@@ -1,8 +1,5 @@
 function Get-ClientId {
-    param(
-        [Parameter(Mandatory=$true)]
-        [hashtable]$Params
-    )
+    param( [hashtable] $Params )
     $config = @{}
     if (! $Params.ClientId) {
         $pathExists = Test-Path $Params.ConfigFile -ErrorAction SilentlyContinue

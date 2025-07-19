@@ -1,13 +1,8 @@
-$ALL_SCOPES = @(
-    'playlist-read-private', 'playlist-read-collaborative' # to get playlist tracks
-    'user-library-read' # to get liked tracks
-)
-
 function Start-SpotifySession {
     [CmdletBinding()]
     param (
         [Parameter(Mandatory=$false)]
-        [string[]] $Scopes = $ALL_SCOPES,
+        [string[]] $Scopes = $script:ALL_SCOPES,
 
         [Parameter(Mandatory=$false)]
         [string] $ClientId,
@@ -30,5 +25,5 @@ function Start-SpotifySession {
     ) | Out-Null
     Get-SpotifyToken @PSBoundParameters | Out-Null
 
-    Write-Host -ForegroundColor Green 'Connected.'
+    Write-Information "${script:GREEN}Connected."
 }

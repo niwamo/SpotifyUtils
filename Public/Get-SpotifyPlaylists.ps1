@@ -13,12 +13,28 @@ function Get-SpotifyPlaylists {
 
         [ValidateSet('json', 'csv')]
         [Parameter(Mandatory=$false)]
-        [string] $OutputFormat
+        [string] $OutputFormat,
+
+        [ValidateScript({
+            !(Test-Path $_) -and (Test-Path ([IO.Path]::GetDirectoryName($_)))
+        })]
+        [Parameter(Mandatory=$false)]
+        [string] $OutputFile,
+
+        [ValidateScript({Test-Path $_})]
+        [Parameter(Mandatory=$false)]
+        [string] $OutputFolder
     )
     
+    if ($OutputFormat -eq 'csv' -and ! $OutputFolder) {
+        throw 'OutputFolder must be specified when using OutputFormat=csv'
+    }
+    if ($OutputFile -and $OutputFolder) {
+        throw 'OutputFile and OutputFolder are mutually exclusive'
+    }
+
     Set-StrictMode -Version 1.0
     $ErrorActionPreference = 'Stop'
-    $delay = 500 # ms
 
     # authorization
     $PSBoundParameters.Add(
@@ -43,13 +59,13 @@ function Get-SpotifyPlaylists {
         if (! $response.next) { break }
         $uri = $response.next
         # avoid rate limiting
-        [System.Threading.Thread]::Sleep($delay)
+        [System.Threading.Thread]::Sleep($script:API_DELAY)
     }
 
-    Write-Host "Found $($playlists.Count) playlists. Fetching playlist tracks..."
+    Write-Information "Found $($playlists.Count) playlists. Fetching playlist tracks..."
 
     $playlistData = foreach ($playlist in $playlists) {
-        Write-Host "`tFetching tracks in '$($playlist.Name)'..." -NoNewline
+        Write-Information "`tFetching tracks in '$($playlist.Name)'..."
         $trackURI = $playlist.tracks.href
         $urlParams = @{
             fields = "next,offset,items(track(name,artists(name),album(name),show(name)))"
@@ -64,46 +80,58 @@ function Get-SpotifyPlaylists {
                 Invoke-WebRequest -Uri $uri -Headers $headers
             ).Content | ConvertFrom-Json
             # add to array
-            [array] $newTracks = $response.items.track
+            $newTracks = ConvertTo-SpotifyTrack -Tracks $response.items.track
             $tracks.AddRange($newTracks) | Out-Null
             if (! $response.next) { break }
             $urlParams.offset = $tracks.Count
             # avoid rate limiting
-            [System.Threading.Thread]::Sleep($delay)
+            [System.Threading.Thread]::Sleep($script:API_DELAY)
         }
         [PSCustomObject]@{
             Name   = $playlist.name
             Owner  = $playlist.owner.display_name
             Tracks = [array]$tracks
         }
-        Write-Host "Done ($($tracks.Count))"
+        Write-Information "Done ($($tracks.Count))"
     }
-
-    ##########################
-    # Region: Format         #
-    ##########################
 
     ##########################
     # Region: Export         #
     ##########################
 
-    if (! $OutputFormat) {
-        return $playlistData
+    if ($OutputFormat -eq 'json') {
+        $out = $playlistData | ConvertTo-Json
+        if ($OutputFile) {
+            Set-Content -Path $OutputFile -Encoding 'UTF8' -Value $out
+            Write-Information "Wrote playlist data to $OutputFile"
+            return
+        }
+        if ($OutputFolder) {
+            $tstamp = Get-Date -Format "yyyy-MM-dd-HH-mm-ss"
+            $fpath  = "$OutputFolder/$tstamp-playlist-export.json"
+            Set-Content -Path $fpath -Encoding 'UTF8' -Value $out
+            Write-Information "Wrote playlist data to $fpath"
+            return
+        }
+        return $out
     }
 
-    #TODO: JSON, CSV
+    if ($OutputFormat -eq 'csv') {
+        # case where OutputFolder is NOT provided is handled at top of function
+        foreach ($plist in $playlistData) {
+            $tstamp = Get-Date -Format "yyyy-MM-dd-HH-mm-ss"
+            $outdir = New-Item -ItemType Directory -Path "$OutputFolder/$tstamp-playlist-export"
+            $fpath  = "$outdir/$($plist.Name).csv"
+            Export-Csv -InputObject $plist.Tracks -Encoding utf8 -Path $fpath
+        }
+    }
 
-    $tstamp = Get-Date -Format "yyyy-MM-dd-HH-mm-ss"
-    $fpath  = "$script:MODULEOUTPUTDIR/$tstamp-playlist-export.json"
-    @{
-        SavedTracks = [array] $saved
-        Playlists   = $playlistData
-    } | ConvertTo-Json -Depth 100 -Compress | Set-Content -Path $fpath -Encoding 'UTF8'
+    return $playlistData
 }
 
 $isDotSource = '. ' -eq $MyInvocation.Line.Substring(0, 2)
 if ($isDotSource) {
-    Write-Host "Script was dot sourced."
+    Write-Debug "Script was dot sourced."
     # don't execute any 'main' statements below
     exit
 }

@@ -1,4 +1,4 @@
-function Get-SpotifyPlaylists {
+function Get-SpotifyTracks {
     [CmdletBinding()]
     param (
         [Parameter(Mandatory=$false)]
@@ -9,12 +9,29 @@ function Get-SpotifyPlaylists {
 
         [ValidateScript({Test-Path $_})]
         [Parameter(Mandatory=$false)]
-        [string] $ConfigFile
+        [string] $ConfigFile,
+
+        [ValidateSet('json', 'csv')]
+        [Parameter(Mandatory=$false)]
+        [string] $OutputFormat,
+        
+        [ValidateScript({
+            !(Test-Path $_) -and (Test-Path ([IO.Path]::GetDirectoryName($_)))
+        })]
+        [Parameter(Mandatory=$false)]
+        [string] $OutputFile,
+
+        [ValidateScript({Test-Path $_})]
+        [Parameter(Mandatory=$false)]
+        [string] $OutputFolder
     )
     
+    if ($OutputFile -and $OutputFolder) {
+        throw 'OutputFile and OutputFolder are mutually exclusive'
+    }
+
     Set-StrictMode -Version 1.0
     $ErrorActionPreference = 'Stop'
-    $delay = 500 # ms
 
     # authorization
     $PSBoundParameters.Add(
@@ -24,47 +41,75 @@ function Get-SpotifyPlaylists {
     $token = Get-SpotifyToken @PSBoundParameters
     $headers = @{ Authorization = "Bearer $token" }
 
-    Write-Host "Retrieving saved tracks..." -NoNewline
+    ##########################
+    # Region: Tracks         #
+    ##########################
 
-    $saved = [System.Collections.ArrayList]::New()
+    Write-Information "Retrieving saved tracks..."
 
-    trap {
-        if (Get-Variable -Name 'saved' -ErrorAction SilentlyContinue) {
-            $tstamp = Get-Date -Format "yyyy-MM-dd-HH-mm-ss"
-            $fpath  = "$script:MODULEOUTPUTDIR/$tstamp-partial-playlist-export.json"
-            $saved | ConvertTo-Json -Depth 100 | Set-Content -Path $fpath
-        }
-    }
+    $savedTracks = [System.Collections.ArrayList]::New()
 
     $uri = "${script:MYTRACKS_URI}?limit=50"
+    $counter = 1
     while ($true) {
+        $counter++
         $response = (
             Invoke-WebRequest -Uri $uri -Headers $headers
         ).Content | ConvertFrom-Json
         # add to array
-        $saved.AddRange(([array] $response.items.track)) | Out-Null
+        [array] $tracks = ConvertTo-SpotifyTrack -Tracks $response.items.track
+        $savedTracks.AddRange($tracks) | Out-Null
         if (! $response.next) { break }
         $uri = $response.next
-        [System.Threading.Thread]::Sleep($delay)
+        [System.Threading.Thread]::Sleep($script:API_DELAY)
     }
 
-    Write-Host "Retrieved $($saved.Count) saved tracks"
+    Write-Information "Retrieved $($savedTracks.Count) saved tracks"
 
     ##########################
     # Region: Export         #
     ##########################
 
-    $tstamp = Get-Date -Format "yyyy-MM-dd-HH-mm-ss"
-    $fpath  = "$script:MODULEOUTPUTDIR/$tstamp-playlist-export.json"
-    @{
-        SavedTracks = [array] $saved
-        Playlists   = $playlistData
-    } | ConvertTo-Json -Depth 100 -Compress | Set-Content -Path $fpath -Encoding 'UTF8'
+    if ($OutputFormat -eq 'json') {
+        $out = $savedTracks | ConvertTo-Json
+        if ($OutputFile) {
+            Set-Content -Path $OutputFile -Encoding 'UTF8' -Value $out
+            Write-Information "Wrote playlist data to $OutputFile"
+            return
+        }
+        if ($OutputFolder) {
+            $tstamp = Get-Date -Format "yyyy-MM-dd-HH-mm-ss"
+            $fpath  = "$OutputFolder/$tstamp-playlist-export.json"
+            Set-Content -Path $fpath -Encoding 'UTF8' -Value $out
+            Write-Information "Wrote playlist data to $fpath"
+            return
+        }
+        return $out
+    }
+
+    if ($OutputFormat -eq 'csv') {
+        $out = $savedTracks | ConvertTo-Csv
+        if ($OutputFile) {
+            Set-Content -Path $OutputFile -Encoding 'UTF8' -Value $out
+            Write-Information "Wrote playlist data to $OutputFile"
+            return
+        }
+        if ($OutputFolder) {
+            $tstamp = Get-Date -Format "yyyy-MM-dd-HH-mm-ss"
+            $fpath  = "$OutputFolder/$tstamp-playlist-export.json"
+            Set-Content -Path $fpath -Encoding 'UTF8' -Value $out
+            Write-Information "Wrote playlist data to $fpath"
+            return
+        }
+        return $out
+    }
+
+    return ,$savedTracks # ',' to preserve object type
 }
 
 $isDotSource = '. ' -eq $MyInvocation.Line.Substring(0, 2)
 if ($isDotSource) {
-    Write-Host "Script was dot sourced."
+    Write-Debug "Script was dot sourced."
     # don't execute any 'main' statements below
     exit
 }
