@@ -119,7 +119,7 @@ function Add-SpotifyTracks {
 
             Write-Debug "top: $($top | ConvertTo-Json -Depth 5)"
 
-            if ($top.name -eq $song.name -and $top.artists[0].name -eq $song.artists[0]) {
+            if ($top.name -match "^$($song.name)" -and $top.artists[0].name -eq $song.artists[0]) {
                 $params = @{
                     URI         = "$script:MYTRACKS_URI"
                     Method      = 'Put'
