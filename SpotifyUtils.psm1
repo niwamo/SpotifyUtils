@@ -64,3 +64,4 @@ $script:ALL_SCOPES      = @('playlist-read-private', 'playlist-read-collaborativ
 
 $ESC                    = [char]27
 $script:GREEN           = "$ESC[35;92m"
+$script:RESETANSI       = "$ESC[35;0m"
