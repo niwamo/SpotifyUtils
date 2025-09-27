@@ -8,3 +8,4 @@ $config.CodeCoverage.CoveragePercentTarget = 50
 $config.Run.PassThru = $true
 $pesterResult = Invoke-Pester -Configuration $config
 $pesterResult.tests | Format-Table ExpandedPath, StandardOutput
+if ($pesterResult.Failed) { exit 1 }
