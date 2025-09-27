@@ -22,11 +22,17 @@ jobs:
 
     steps:
       - uses: actions/checkout@ff7abcd0c3c05ccf6adc123a8cd1fd4fb30fb493
+        if: github.actor != 'github-actions'
+        with:
+          # https://github.com/actions/checkout/issues/317#issuecomment-737107262
+          ref: ${{ github.event.pull_request.head.ref }}
 
       - name: Increment version
+        if: github.actor != 'github-actions'
         shell: pwsh
         run: |
-          $module = Import-Module -PassThru ./*.psd1
+          $manifestPath = (Get-ChildItem -Path . -Filter "*.psd1").FullName
+          $module = Test-ModuleManifest -Path $manifestPath
           $version = $module.version
           $galleryModule = Find-Module -Name $module.Name -Repository PSGallery
           $galleryVersion = [version]::parse($galleryModule.version)
@@ -36,9 +42,10 @@ jobs:
             $galleryVersion.Minor,
             $galleryVersion.Build + 1
           )
-          Update-ModuleManifest -Path ./*.psd1 -ModuleVersion $newVersion
+          Update-ModuleManifest -Path $manifestPath -ModuleVersion $newVersion
 
       - name: Push changes
+        if: github.actor != 'github-actions'
         shell: pwsh
         run: |
           git config --global user.name "github-actions"
