@@ -53,8 +53,11 @@ function Get-SpotifyTracks {
     $counter = 1
     while ($true) {
         $counter++
-        $response = (
-            Invoke-WebRequest -Uri $uri -Headers $headers
+        $tmp = Invoke-WebRequest -Uri $uri -Headers $headers
+        
+        echo $tmp >> ~\Desktop\log.txt
+        
+        $response = ($tmp
         ).Content | ConvertFrom-Json
         # add to array
         [array] $tracks = ConvertTo-SpotifyTrack -Tracks $response.items.track
@@ -105,11 +108,4 @@ function Get-SpotifyTracks {
     }
 
     return ,$savedTracks # ',' to preserve object type
-}
-
-$isDotSource = '. ' -eq $MyInvocation.Line.Substring(0, 2)
-if ($isDotSource) {
-    Write-Debug "Script was dot sourced."
-    # don't execute any 'main' statements below
-    exit
 }

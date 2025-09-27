@@ -10,15 +10,18 @@ function Invoke-MockWebRequest {
         [string]    $Method = 'GET'
     )
     $endpoint = $URI.Split('?')[0]
-    switch -Wildcard ($endpoint) {
-        "https://accounts.spotify.com/authorize"        { return Invoke-MockAuthorize @PSBoundParameters }
-        "https://accounts.spotify.com/api/token"        { return Invoke-MockToken     @PSBoundParameters }
-        "https://api.spotify.com/v1/me/tracks"          { return Invoke-MockTracks    @PSBoundParameters }
-        "https://api.spotify.com/v1/me/playlists"       { return Invoke-MockPlaylists @PSBoundParameters }
-        "https://api.spotify.com/v1/playlists/*/tracks" { return Invoke-MockTracks    @PSBoundParameters }
-        "https://api.spotify.com/v1/search"             { return Invoke-MockSearch    @PSBoundParameters }
+
+    $results = switch -Wildcard ($endpoint) {
+        "https://accounts.spotify.com/authorize"        { Invoke-MockAuthorize @PSBoundParameters }
+        "https://accounts.spotify.com/api/token"        { Invoke-MockToken     @PSBoundParameters }
+        "https://api.spotify.com/v1/me/tracks"          { Invoke-MockTracks    @PSBoundParameters }
+        "https://api.spotify.com/v1/me/playlists"       { Invoke-MockPlaylists @PSBoundParameters }
+        "https://api.spotify.com/v1/playlists/*/tracks" { Invoke-MockTracks    @PSBoundParameters }
+        "https://api.spotify.com/v1/search"             { Invoke-MockSearch    @PSBoundParameters }
         Default                                         { throw "Endpoint $endpoint un-mocked" }
     }
+
+    return $results
 }
 
 function Invoke-MockAuthorize {
@@ -240,33 +243,40 @@ function Invoke-MockTracks {
         [Parameter(Mandatory = $true)]
         [string]    $URI,
         [hashtable] $Headers,
-        [string]    $Method,
-        [hashtable] $Body
+        [hashtable] $Body,
+        [string]    $ContentType,
+        [string]    $Method = 'GET'
     )
     $authorized = ($Headers.ContainsKey('Authorization') -and 
                    $Headers.Authorization -match 'Bearer *')
     if (! $authorized) {
         throw 'Authorization header invalid'
     }
+
     if ($Method -eq 'GET') {
         $tracks = $trackResponseSample | ConvertFrom-Json
         # prevent method from trying to retrieve another page of results
         $tracks.next = $null
         # make array more than one item long to prevent PS unpacking
         $tracks.items = @($tracks.items[0], $tracks.items[0])
-        return @{
+        $result = @{
             StatusCode = 200
             Content    = $tracks | ConvertTo-Json -Depth 10
         }
     }
-    if ($Method -eq 'PUT') {
+    elseif ($Method -eq 'PUT') {
         if (! $Body.ids -or ! $Body.ids.Count) {
             throw "'ids' required in body of request"
         }
-        return @{
+        $result = @{
             StatusCode = 200
         }
     }
+    else {
+      throw "Invalid method ($method) for URI ($URI)"
+    }
+ 
+    return $result
 }
 
 $playlistResponseSample = @'
@@ -366,14 +376,31 @@ function Invoke-MockSearch {
     $endpoint, $paramstring = $URI.Split('?')
     if ($paramstring) {
         $parameters = @{}
-        foreach ($substring in $paramstring -split '&') {
-            $values = $substring -split '='
+        foreach ($substring in $paramstring.split('&')) {
+            $values = $substring.split('=')
             $parameters.Add(
                 $values[0], $values[1]
             )
         }
     }
 
-    #TODO
+    $query = $parameters['q']
+    $name = [regex]::matches($query, '(?<=track:")[^"]+').value
+    $artist = [regex]::matches($query, '(?<=artist:")[^"]+').value
 
+    $response = @{
+      Content = @{
+        tracks = @{
+          items = @(@{
+              id = [guid]::newguid()
+              name = $name
+              artists = @(@{name = $artist})
+            })
+        }
+      } | ConvertTo-Json -Depth 5 -Compress
+    }
+    
+    return $response
 }
+
+Export-ModuleMember -Function *

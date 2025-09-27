@@ -39,11 +39,15 @@ function Add-SpotifyTracks {
     $ErrorActionPreference = 'Stop'
 
     # authorization
-    $PSBoundParameters.Add(
-        'Scopes', 
-        @('user-library-modify')
-    ) | Out-Null
-    $token = Get-SpotifyToken @PSBoundParameters
+    $TokenParams = @{
+        Scopes      = @('user-library-modify')
+    }
+    foreach ($param in @('ClientId', 'RedirectURI', 'ConfigFile')) {
+        if ($PSBoundParameters.ContainsKey($param)) {
+            $TokenParams.Add($param, $PSBoundParameters.TryGetValue($param))
+        }
+    }
+    $token = Get-SpotifyToken @TokenParams
     $headers = @{ Authorization = "Bearer $token" }
 
     ##########################
@@ -53,24 +57,31 @@ function Add-SpotifyTracks {
     $missing = [System.Collections.ArrayList]::new()
     foreach ($song in $tracks) {
         Write-Debug "Trying to add $($song.name) by $($song.artists[0])"
-        $uri = "$script:SEARCH_URI?type=track&q=artist%3A$($song.artist)%20track%3A$($song.name)"
+        # https://stackoverflow.com/questions/73680222
+        $uri = "$($script:SEARCH_URI)?type=track&q=artist:""$($song.artists[0])"" track:""$($song.name)"""
         $results = (Invoke-WebRequest -Uri $uri -Headers $headers).Content | ConvertFrom-Json
         $top = $results.tracks.items[0]
-        if ($top.name -eq $title -and $top.artists[0].name -eq $artist) {
+
+        if ($top.name -eq $song.name -and $top.artists[0].name -eq $song.artists[0]) {
             $params = @{
-                URI         = "$baseURI/me/tracks"
+                URI         = "$script:MYTRACKS_URI"
                 Method      = 'Put'
                 ContentType = 'application/json'
-                Body        = @{ids=@($top.id)} | ConvertTo-Json -Compress
+                Body        = @{ids=@($top.id)}
                 Headers     = $headers
             }
-            Invoke-WebRequest @params
-            Write-Information "Added $($song.name)"
+            Invoke-WebRequest @params | Out-Null
+            Write-Debug "Added $($song.name)"
         }
         else {
-            Write-Warning "Could not find $($song.name)"
-            $missing.Add($song)
+            Write-Debug "Could not find $($song.name)"
+            $missing.Add($song) | Out-Null
         }
         [System.Threading.Thread]::Sleep($script:API_DELAY)
+    }
+
+    if ($missing.Count) {
+        Write-Warning "Failed to add $($missing.Count) tracks, returning them in an array"
+        return $missing
     }
 }

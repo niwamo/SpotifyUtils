@@ -1,13 +1,10 @@
 if (Get-Module | Where-Object Name -eq 'SpotifyUtils') {
-    Remove-Module 'SpotifyUtils'
+    Remove-Module -Force SpotifyUtils
 }
 Import-Module "$PSScriptRoot\..\..\SpotifyUtils.psd1" -Force | Out-Null
 
 InModuleScope SpotifyUtils {
     BeforeAll {
-        if (Get-Module | Where-Object Name -eq 'SUCommonTestFuncs') {
-            Remove-Module 'SUCommonTestFuncs'
-        }
         Import-Module "$PSScriptRoot\..\SUCommonTestFuncs.psm1"
         Mock Invoke-WebRequest { Invoke-MockWebRequest @PesterBoundParameters }
         Mock Start-Process     { Start-MockProcess @PesterBoundParameters}

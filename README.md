@@ -1,8 +1,11 @@
-# spotify-utils
+# SpotifyUtils
 
-a collection of scripts for interacting with Spotify's API
+A PowerShell module for managing your Spotify tracks and playlists via Spotify's API.
 
-## setup
+_Disclaimer: This project is in no way "official", endorsed or supported by, or
+in affiliated with Spotify. All code is provided as-is, with no warranty or guarantees._
+
+## Setup
 
 1. Create a Spotify 'app'
    - [spotify docs](https://developer.spotify.com/documentation/web-api/tutorials/getting-started)
@@ -22,15 +25,29 @@ a collection of scripts for interacting with Spotify's API
 The client ID can viewed by selecting your app from the Spotify
 [Developer Dashboard](https://developer.spotify.com/dashboard).
 
-## export-playlists
+## Usage
+
+This module provides the following functions:
+
+### Add-SpotifyTracks
+### Get-SpotifyPlaylists
 
 Exports your playlist _metadata_ (NOT the songs themselves) for the sake of
 portability/recreating them elsewhere.
 
-### usage
+### Get-SpotifyTracks
+### Get-TracksFromFolder
+### Start-SpotifySession
 
-```
-./export-playlists.ps1 
-```
+## Contributing
 
-## add-songs
+Contributions, suggestions, and requests are welcome! If contributing, please
+add tests for any new functionality and ensure you do not create any regressions.
+
+### Running the test suite
+
+From the repository's root:
+
+```powershell
+pwsh.exe .\Tests\RunTests.ps1
+```

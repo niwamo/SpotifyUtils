@@ -3,7 +3,11 @@ class SpotifyTrack {
     [string] $album
     [string[]] $artists
 
-    SpotifyTrack ([PSObject] $obj) {
+    SpotifyTrack ([object] $obj) {
+        Write-Debug (
+            "Casting object to SpotifyTrack:`n" + 
+            $obj | ConvertTo-Json -WarningAction SilentlyContinue
+        )
         if (! $obj.name) {
             throw "Object does not contain property 'name'"
         }
@@ -15,7 +19,12 @@ class SpotifyTrack {
         if (! $obj.artists.name) {
             throw "Object does not contain property 'artists.name'"
         }
-        $this.artists = [array] $obj.artists.name
+        if ($obj.artists.name -is [string]) {
+            $obj.artists.name = $obj.artists.name.
+                split(';').
+                split(',')
+        }
+        $this.artists = [array] $obj.artists.name.ForEach({$_.trim()})
     }
 }
 
@@ -24,5 +33,18 @@ function ConvertTo-SpotifyTrack {
         [Parameter(Mandatory=$true)]
         [array] $Tracks
     )
-    return $tracks.ForEach({$_ -as [SpotifyTrack]})
+    $results = foreach ($track in $Tracks) {
+        try { [SpotifyTrack] $track }
+        catch {
+            Write-Debug (
+                "Failed to convert track to SpotifyTrack: " +
+                $_.Exception.Message
+            )
+        }
+    }
+    $diff = $Tracks.Count - $results.Count
+    if ($diff) {
+        Write-Warning "Failed to convert $diff of $($Tracks.Count) tracks into SpotifyTracks"
+    }
+    return $results
 }

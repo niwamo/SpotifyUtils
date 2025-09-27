@@ -128,10 +128,3 @@ function Get-SpotifyPlaylists {
 
     return $playlistData
 }
-
-$isDotSource = '. ' -eq $MyInvocation.Line.Substring(0, 2)
-if ($isDotSource) {
-    Write-Debug "Script was dot sourced."
-    # don't execute any 'main' statements below
-    exit
-}
