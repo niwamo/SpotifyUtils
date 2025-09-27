@@ -26,7 +26,8 @@ jobs:
       - name: Increment version
         shell: pwsh
         run: |
-          $module = Import-Module -PassThru ./*.psd1
+          $manifestPath = (Get-ChildItem -Path . -Filter "*.psd1").FullName
+          $module = Test-ModuleManifest -Path $manifestPath
           $version = $module.version
           $galleryModule = Find-Module -Name $module.Name -Repository PSGallery
           $galleryVersion = [version]::parse($galleryModule.version)
@@ -36,7 +37,7 @@ jobs:
             $galleryVersion.Minor,
             $galleryVersion.Build + 1
           )
-          Update-ModuleManifest -Path ./*.psd1 -ModuleVersion $newVersion
+          Update-ModuleManifest -Path $manifestPath -ModuleVersion $newVersion
 
       - name: Push changes
         shell: pwsh
