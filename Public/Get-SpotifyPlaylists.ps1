@@ -1,3 +1,45 @@
+<#
+.SYNOPSIS
+Export your Spotify playlists
+
+.DESCRIPTION
+Retrieves your Spotify playlists. By default, returns them as a nested data
+object, but can be instructed to instead return a combined JSON file or set of
+CSV files, where each CSV contains a song list for a specific playlist.
+
+.PARAMETER ClientId
+Optional. The ClientId of the app you registered in the Spotify developer
+portal. See the 'Authentication' section at
+https://github.com/niwamo/SpotifyUtils
+
+.PARAMETER RedirectURI
+Optional. The redirect URI used for OAuth authentication. Must match what is
+configured in the Spotify developer protal. See the 'Authentication' section at
+https://github.com/niwamo/SpotifyUtils
+
+.PARAMETER ConfigFile
+Optional. The path to a JSON configuration file containing 'ClientId' and
+'RedirectURI' properties. See the 'Authentication' section at
+https://github.com/niwamo/SpotifyUtils
+
+.PARAMETER OutputFormat
+The format in which to return playlist data. Can be either 'json' or
+'csv'. If 'JSON', combined with OutputFile or OutputFolder, writes directly to a
+file. If 'JSON' and not combined with one of the above parameters, returns a
+string. If 'CSV', must be combined with OutputFolder, and will write one file
+per playlist.
+
+.PARAMETER OutputFile
+The filepath where this function should save retreived data. Requires
+OutputFormat to be specified.
+
+.PARAMETER OutputFolder
+The directory where this function should save retrieved data. Requires
+OutputFormat to be specified.
+
+.EXAMPLE
+Get-SpotifyPlaylists -OutputFormat csv -OutputFolder ./playlists
+#>
 function Get-SpotifyPlaylists {
     [CmdletBinding()]
     param (

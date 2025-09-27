@@ -8,23 +8,54 @@ class SpotifyTrack {
             "Casting object to SpotifyTrack:`n" + 
             $obj | ConvertTo-Json -WarningAction SilentlyContinue
         )
+        
+        # TRACK NAME
         if (! $obj.name) {
             throw "Object does not contain property 'name'"
         }
         $this.name = $obj.name
-        if (! $obj.album.name) {
-            throw "Object does not contain property 'album.name'"
+        
+        # ALBUM NAME
+        if ($obj.album -and $obj.album -is [string]) {
+            $this.album = $obj.album
         }
-        $this.album = $obj.album.name
-        if (! $obj.artists.name) {
-            throw "Object does not contain property 'artists.name'"
+        elseif ($obj.album.name -is [string]) {
+            $this.album = $obj.album.name
         }
-        if ($obj.artists.name -is [string]) {
-            $obj.artists.name = $obj.artists.name.
-                split(';').
-                split(',')
+        else {
+            throw "Object does not contain a string 'album' or 'album.name'"
         }
-        $this.artists = [array] $obj.artists.name.ForEach({$_.trim()})
+
+        # ARTIST(S) NAME
+        if ($obj.artists -and $obj.artists -is [string]) {
+            $this.artists = [array] (
+                $obj.album.split(';').split(',').ForEach({$_.trim()})
+            )
+        }
+        elseif ($obj.artists.name) {
+            $this.artists = [array] (
+                $obj.artists.name.split(';').split(',').ForEach({$_.trim()})
+            )
+        }
+        else {
+            throw "Object does not contain a string 'artists' or 'artists.name'"
+        }
+    }
+
+    # interface required for HashSet / Select -Unique
+    [bool] Equals($x) { 
+        if ( $x -is [SpotifyTrack] ) { 
+            return ($x.GetHashCode() -eq $this.GetHashCode())
+	    } else {
+            return $false
+        } 
+    }
+
+    [int] GetHashCode() {
+        $stringified = [string]::Format( 
+            "{0}{1}{2}", $this.name, $this.artist, $this.album
+        )
+        return $stringified.GetHashCode() 
     }
 }
 
@@ -46,5 +77,10 @@ function ConvertTo-SpotifyTrack {
     if ($diff) {
         Write-Warning "Failed to convert $diff of $($Tracks.Count) tracks into SpotifyTracks"
     }
-    return $results
+    $unique = [array] [System.Collections.Generic.HashSet[SpotifyTrack]] $results
+    $diff = $results.Count - $unique.Count 
+    if ($diff) {
+        Write-Warning "Filtering $diff duplicates"
+    }
+    return $unique
 }

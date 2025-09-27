@@ -1,3 +1,43 @@
+<#
+.SYNOPSIS
+Export a list of your Spotify liked tracks
+
+.DESCRIPTION
+Retrieves a list of your Spotify liked tracks. By default, returns them as an
+array of `SpotifyTracks`, but can be instructed to instead return a JSON/CSV
+string, or write directly to a JSON/CSV file.
+
+.PARAMETER ClientId
+Optional. The ClientId of the app you registered in the Spotify developer
+portal. See the 'Authentication' section at
+https://github.com/niwamo/SpotifyUtils
+
+.PARAMETER RedirectURI
+Optional. The redirect URI used for OAuth authentication. Must match what is
+configured in the Spotify developer protal. See the 'Authentication' section at
+https://github.com/niwamo/SpotifyUtils
+
+.PARAMETER ConfigFile
+Optional. The path to a JSON configuration file containing 'ClientId' and
+'RedirectURI' properties. See the 'Authentication' section at
+https://github.com/niwamo/SpotifyUtils
+
+.PARAMETER OutputFormat
+The format in which to return a list of liked songs. Can be either 'json' or
+'csv'. If combined with OutputFile or OutputFolder, writes directly to a file.
+If not combined with one of the above parameters, returns a string.
+
+.PARAMETER OutputFile
+The filepath where this function should save a list of liked songs. Requires
+OutputFormat to be specified.
+
+.PARAMETER OutputFolder
+The directory where this function should save a list of liked songs. Requires
+OutputFormat to be specified.
+
+.EXAMPLE
+Get-SpotifyTracks -OutputFormat json -OutputFolder .
+#>
 function Get-SpotifyTracks {
     [CmdletBinding()]
     param (
@@ -29,6 +69,9 @@ function Get-SpotifyTracks {
     if ($OutputFile -and $OutputFolder) {
         throw 'OutputFile and OutputFolder are mutually exclusive'
     }
+    if ($OutputFile -and $OutputFolder -and !$OutputFormat) {
+        throw 'OutputFormat must be specified when using OutputFile/OutputFolder'
+    }
 
     Set-StrictMode -Version 1.0
     $ErrorActionPreference = 'Stop'
@@ -53,11 +96,8 @@ function Get-SpotifyTracks {
     $counter = 1
     while ($true) {
         $counter++
-        $tmp = Invoke-WebRequest -Uri $uri -Headers $headers
-        
-        echo $tmp >> ~\Desktop\log.txt
-        
-        $response = ($tmp
+        $response = (
+            Invoke-WebRequest -Uri $uri -Headers $headers
         ).Content | ConvertFrom-Json
         # add to array
         [array] $tracks = ConvertTo-SpotifyTrack -Tracks $response.items.track

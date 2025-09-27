@@ -27,3 +27,12 @@ returned.
 
 https://api.spotify.com/v1/me/playlists
 [Documentation](https://developer.spotify.com/documentation/web-api/reference/get-a-list-of-current-users-playlists)
+
+## Search
+
+Search Spotify for various object types (i.e. tracks). Supports filtering via a
+"query". Documentation is confusing, see also:
+https://stackoverflow.com/questions/73680222
+
+https://api.spotify.com/v1/search
+[Documentation](https://developer.spotify.com/documentation/web-api/reference/search)
