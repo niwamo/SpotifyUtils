@@ -102,10 +102,14 @@ function Start-MockProcess {
     )
     $uri = "${FilePath}?code=mockedcode&state=mockedstate"
     $pwsh = [System.Diagnostics.Process]::GetCurrentProcess().Path
-    Start-Process `
-        -FilePath $pwsh `
-        -WindowStyle Hidden `
-        -ArgumentList '-c', "Start-Sleep 1; Invoke-WebRequest '$uri'"
+    $params = @{
+      FilePath = $pwsh
+      ArgumentList = @('-c', "Start-Sleep 1; Invoke-WebRequest '$uri'")
+    }
+    if (! $IsLinux) {
+      $params.Add('WindowStyle', 'Hidden')
+    }
+    Start-Process @params
 }
 
 function Get-MockContent {

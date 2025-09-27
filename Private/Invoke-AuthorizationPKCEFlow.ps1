@@ -69,26 +69,53 @@ function Invoke-AuthorizationPKCEFlow {
     Write-Information 'Opening authentication page in your web browser...'
 
     # start our listener to catch redirected code
-    $srv = [System.Net.HttpListener]::New()
-    if ($rURI[-1] -ne '/') { $rURI += '/' }
-    try {
-        $srv.Prefixes.Add($rURI)
-        $srv.Start()
-        $context = $srv.GetContext()
-        $query = $context.Request.QueryString
-        $response = $context.Response
-        $response.StatusCode = 200
-        $response.ContentType = 'text/html'
-        $data = '<html><head><script>window.close();</script></head><body>Hello! Goodbye!</body></html>'
-        $buffer = [System.Text.Encoding]::UTF8.GetBytes($data)
-        $response.ContentLength64 = $buffer.Length
-        $response.OutputStream.Write($buffer, 0, $buffer.Length)
-        $response.Close()
-        $code = $query.Get('code')
+    $timeout = 30
+    $sb = {
+        $srv = [System.Net.HttpListener]::New()
+        if ($rURI[-1] -ne '/') { $rURI += '/' }
+        try {
+            $srv.Prefixes.Add($rURI)
+            $srv.Start()
+            $context = $srv.GetContext()
+            $query = $context.Request.QueryString
+            $response = $context.Response
+            $response.StatusCode = 200
+            $response.ContentType = 'text/html'
+            $data = '<html><head><script>window.close();</script></head><body>Hello! Goodbye!</body></html>'
+            $buffer = [System.Text.Encoding]::UTF8.GetBytes($data)
+            $response.ContentLength64 = $buffer.Length
+            $response.OutputStream.Write($buffer, 0, $buffer.Length)
+            $response.Close()
+            $code = $query.Get('code')
+        }
+        finally {
+            $srv.Close()
+        }
+        Write-Output $code
     }
-    finally {
-        $srv.Close()
+
+    $pinfo = New-Object System.Diagnostics.ProcessStartInfo
+    $pinfo.FileName = (Get-Process -Id $PID).Path
+    $pinfo.RedirectStandardOutput = $true
+    $pinfo.UseShellExecute = $false
+    $pinfo.Arguments = @(
+        "-NonInteractive", 
+        "-Command", [string]::Format("{0}`n{1}", "`$rURI = '$rURI'", $sb.ToString()))
+    $p = New-Object System.Diagnostics.Process
+    $p.StartInfo = $pinfo
+    $p.Start() | Out-Null
+    $counter = 0
+    while ($counter -lt $timeout) {
+        if ($p.HasExited) { break }
+        Start-Sleep -Seconds 1
     }
+    if (! $p.HasExited) {
+        Stop-Process -Force -Id $p.Id
+        throw "Authentication timed out after $timeout seconds"
+    }
+
+    $code = $p.StandardOutput.ReadToEnd().Trim()
+    Write-Debug "Received code: $code"
 
     Write-Information "Authentication complete"
 
