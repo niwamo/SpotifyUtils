@@ -12,10 +12,10 @@ on:
       - 'main'
 
 permissions:
+  actions: write
   checks: write
   contents: write
   pull-requests: write
-  workflows: write
 
 jobs:
   testing:
