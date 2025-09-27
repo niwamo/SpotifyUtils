@@ -1,5 +1,8 @@
-$moduleName = $PSScriptRoot.Split('\')[-1]
-$manifest = "$PSScriptRoot\$moduleName.psd1"
+$psd1files = Get-ChildItem -Path $PSScriptRoot -Filter "*.psd1"
+if ($psd1files.Count -ne 1) {
+    throw "Failed to find the module's psd1 file"
+}
+$manifest = $psd1files[0].FullName
 $publicFunctionsPath = "$PSScriptRoot\Public\"
 $privateFunctionsPath = "$PSScriptRoot\Private"
 $currentManifest = Test-ModuleManifest $manifest
