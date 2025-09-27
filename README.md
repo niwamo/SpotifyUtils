@@ -7,6 +7,16 @@ _Disclaimer: This project is in no way "official", endorsed or supported by
 Spotify, or affiliated with Spotify in any way. All code is provided as-is, with
 no warranty or guarantees._
 
+## Installation
+
+This module has been published to
+[PSGallery](https://www.powershellgallery.com/packages/SpotifyUtils) and can be
+installed with:
+
+```powershell
+Install-Module SpotifyUtils
+```
+
 ## Initial Setup
 
 1. Create a Spotify 'app'
@@ -14,6 +24,7 @@ no warranty or guarantees._
    - Important settings:
      - 'Which API/SDKs are you planning to use?' --> select 'Web API'
      - Redirect URIs --> 'http://localhost:8080'
+       - Note: `http://localhost` is important, the port is not
 2. Clone this repository
 3. (Optional) Create a `.env.json` config file inside the cloned repository
 
