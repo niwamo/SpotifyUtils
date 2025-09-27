@@ -2,6 +2,12 @@ name: Publish module
 
 on:
   push:
+    paths:
+      - "**/*.ps1"
+      - "**/*.psm1"
+      - "**/*.psd1"
+      - "Public/**"
+      - "Private/**"
     branches:
       - 'main'
 
