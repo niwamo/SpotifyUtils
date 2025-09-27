@@ -13,11 +13,10 @@ All tests assume installation and authentication have been configured.
 3. `$tracks = Get-SpotifyTracks` - no output args. Spot check output.
 4. `Get-SpotifyTracks -OutputFormat json -OutputFile ~\Desktop\songs.json` -
    Spot check output.
-5. `Get-SpotifyTracks -OutputFormat csv -OutputFolder ~\Desktop` - Spot check
-   output.
-6. `mkdir ~\Desktop\playlists; Get-SpotifyPlaylists -OutputFormat csv
+5. `mkdir ~\Desktop\playlists; Get-SpotifyPlaylists -OutputFormat csv
    -OutputFolder ~\Desktop\playlists` - Spot check output.
-7. `Add-SpotifyTracks -InputFile ~\Desktop\playlists\*.csv` - Spot check output.
+6. `Add-SpotifyTracks -InputFile ~\Desktop\playlists\*.csv` - Spot check output.
    - Note: songs already present in your library are ignored. Check output
      for errors only.
-8. `Get-SpotifyTracks | Add-SpotifyTracks` - Again, just checking for errors.
+7. `$tracks = Get-TracksFromFolder; $tracks | Add-SpotifyTracks;
+   Add-SpotifyTracks -Tracks $tracks` - Again, just checking for errors.
