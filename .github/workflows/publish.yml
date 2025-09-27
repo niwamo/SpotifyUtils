@@ -1,6 +1,7 @@
 name: Publish module
 
 on:
+  workflow_dispatch:
   push:
     paths:
       - "**/*.ps1"
