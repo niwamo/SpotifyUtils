@@ -4,7 +4,7 @@ function Invoke-MockWebRequest {
         [string]    $URI,
         [hashtable] $Headers,
         [string]    $ContentType,
-        [hashtable] $Body,
+        [object]    $Body,
         [int]       $MaximumRedirection,
         [boolean]   $SkipHttpErrorCheck,
         [string]    $Method = 'GET'
@@ -67,7 +67,7 @@ function Invoke-MockToken {
         [Parameter(Mandatory = $true)]
         [string]    $URI,
         [string]    $ContentType,
-        [hashtable] $Body,
+        [object]    $Body,
         [string]    $Method = 'GET'
     )
     if ($Method -ne 'POST') { throw "Wrong HTTP method (Expected POST, got $Method)" }
@@ -250,7 +250,7 @@ function Invoke-MockTracks {
         [Parameter(Mandatory = $true)]
         [string]    $URI,
         [hashtable] $Headers,
-        [hashtable] $Body,
+        [object]    $Body,
         [string]    $ContentType,
         [string]    $Method = 'GET'
     )
@@ -272,6 +272,7 @@ function Invoke-MockTracks {
         }
     }
     elseif ($Method -eq 'PUT') {
+        $Body = $Body | ConvertFrom-Json
         if (! $Body.ids -or ! $Body.ids.Count) {
             throw "'ids' required in body of request"
         }
