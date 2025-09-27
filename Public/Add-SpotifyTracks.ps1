@@ -83,7 +83,6 @@ function Add-SpotifyTracks {
             "Received $($inputData.Count) tracks to add"
         )
         $tracks = ConvertTo-SpotifyTrack -Tracks $inputData
-        return
         
         # authorization
         $TokenParams = @{
