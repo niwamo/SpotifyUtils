@@ -52,7 +52,16 @@ function Start-SpotifySession {
         'Scopes', 
         $ALL_SCOPES
     ) | Out-Null
-    Get-SpotifyToken @PSBoundParameters | Out-Null
+    try {
+        Get-SpotifyToken @PSBoundParameters | Out-Null
+    }
+    catch {
+        Write-Error (
+            "There was a problem authenticating to the Spotify API.`n" +
+            "Please review the Authentication section at https://github.com/niwamo/SpotifyUtils.`n" +
+            "Error message: " + $_.Exception.Message
+        )
+    }
 
     Write-Information "${script:GREEN}Connected."
 }
