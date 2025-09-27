@@ -1,0 +1,48 @@
+name: Increment module version
+
+on:
+  pull_request:
+    paths:
+      - "**/*.ps1"
+      - "**/*.psm1"
+      - "**/*.psd1"
+      - "Public/**"
+      - "Private/**"
+    branches:
+      - 'main'
+
+permissions:
+  checks: write
+  contents: write
+
+jobs:
+  tests:
+    name: Increment version
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@ff7abcd0c3c05ccf6adc123a8cd1fd4fb30fb493
+
+      - name: Increment version
+        shell: pwsh
+        run: |
+          $module = Import-Module -PassThru ./*.psd1
+          $version = $module.version
+          $galleryModule = Find-Module -Name $module.Name -Repository PSGallery
+          $galleryVersion = [version]::parse($galleryModule.version)
+          if ($version -gt $galleryVersion) { exit }
+          $newVersion = [version]::new(
+            $galleryVersion.Major,
+            $galleryVersion.Minor,
+            $galleryVersion.Build + 1
+          )
+          Update-ModuleManifest -Path ./*.psd1 -ModuleVersion $newVersion
+
+      - name: Push changes
+        shell: pwsh
+        run: |
+          git config --global user.name "github-actions"
+          git config --global user.email "github-actions@not-a-real-email.org"
+          git add -A
+          git commit -m "github-actions: increment module version"
+          git push
