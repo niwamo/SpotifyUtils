@@ -62,7 +62,7 @@ class SpotifyTrack {
 function ConvertTo-SpotifyTrack {
     param (
         [Parameter(Mandatory=$true)]
-        [System.Collections.ICollection] $Tracks
+        [array] $Tracks
     )
     Write-Debug (
         "Attempting to convert $($Tracks.Count) objects " +
