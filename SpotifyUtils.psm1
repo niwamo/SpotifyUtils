@@ -58,7 +58,7 @@ $script:SEARCH_URI      = "$script:BASE_URI/search"
 
 $script:API_DELAY       = 250 # milliseconds between API calls (avoid rate limiting)
 
-$script:TOKENS          =  [System.Collections.ArrayList]::New()
+$script:TOKENS          = [System.Collections.ArrayList]::New()
 $script:ALL_SCOPES      = @('playlist-read-private', 'playlist-read-collaborative',
                             'user-library-read', 'user-library-modify')
 

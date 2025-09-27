@@ -1,8 +1,3 @@
-if (Get-Module | Where-Object Name -eq 'SpotifyUtils') {
-    Remove-Module -Force SpotifyUtils
-}
-Import-Module "$PSScriptRoot\..\..\SpotifyUtils.psd1" -Force | Out-Null
-
 InModuleScope SpotifyUtils {
     BeforeAll {
         Import-Module "$PSScriptRoot\..\SUCommonTestFuncs.psm1"
@@ -13,6 +8,7 @@ InModuleScope SpotifyUtils {
             if ($args[0] -eq "input.json") { return $true }
             else { return [System.IO.Path]::Exists($args[0]) }
         }
+        $script:TOKENS = [System.Collections.ArrayList]::New()
     }
     Describe "Get-SpotifyTracks" {
         It "with Start-SpotifySession and no output format" {

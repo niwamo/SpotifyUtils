@@ -124,9 +124,13 @@ function Add-SpotifyTracks {
                     URI         = "$script:MYTRACKS_URI"
                     Method      = 'Put'
                     ContentType = 'application/json'
-                    #Body        = @{ids=@($top.id)}
-                    Body        = "{""ids"":[""$($top.id)""]}"
                     Headers     = $headers
+                }
+                if ($PSVersionTable.PSVersion.Major -gt 5) {
+                    $params.Add('Body', @{ids=@($top.id)})
+                }
+                else {
+                    $params.Add('Body', "{""ids"":[""$($top.id)""]}")
                 }
 
                 Write-Debug "params: $($params | ConvertTo-Json -Depth 5)"

@@ -1,8 +1,3 @@
-if (Get-Module | Where-Object Name -eq 'SpotifyUtils') {
-    Remove-Module 'SpotifyUtils'
-}
-Import-Module "$PSScriptRoot\..\..\SpotifyUtils.psd1" -Force | Out-Null
-
 InModuleScope SpotifyUtils {
     BeforeAll {
         Mock Invoke-AuthorizationPKCEFlow -MockWith { 

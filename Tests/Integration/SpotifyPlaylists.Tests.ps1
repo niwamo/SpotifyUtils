@@ -1,14 +1,10 @@
-if (Get-Module | Where-Object Name -eq 'SpotifyUtils') {
-    Remove-Module -Force SpotifyUtils
-}
-Import-Module "$PSScriptRoot\..\..\SpotifyUtils.psd1" -Force | Out-Null
-
 InModuleScope SpotifyUtils {
     BeforeAll {
         Import-Module "$PSScriptRoot\..\SUCommonTestFuncs.psm1"
         Mock Invoke-WebRequest { Invoke-MockWebRequest @PesterBoundParameters }
         Mock Start-Process     { Start-MockProcess @PesterBoundParameters }
         Mock Get-Content       { Get-MockContent @PesterBoundParameters }
+        $script:TOKENS = [System.Collections.ArrayList]::New()
     }
     Describe "SpotifyPlaylists" {
         It "without Start-SpotifySession and without output format" {
