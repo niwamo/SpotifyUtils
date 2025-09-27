@@ -62,7 +62,12 @@ class SpotifyTrack {
 function ConvertTo-SpotifyTrack {
     param (
         [Parameter(Mandatory=$true)]
-        [array] $Tracks
+        [System.Collections.ICollection] $Tracks
+    )
+    Write-Debug (
+        "Attempting to convert $($Tracks.Count) objects " +
+        "from collection of type $($Tracks.GetType()) " +
+        "into SpotifyTracks"
     )
     $results = foreach ($track in $Tracks) {
         try { [SpotifyTrack] $track }
@@ -83,5 +88,6 @@ function ConvertTo-SpotifyTrack {
     if ($diff) {
         Write-Warning "Filtering $diff duplicates"
     }
+    Write-Debug "Returning $($unique.Count) SpotifyTracks"
     return ,$unique  # ',' to prevent unpacking
 }
