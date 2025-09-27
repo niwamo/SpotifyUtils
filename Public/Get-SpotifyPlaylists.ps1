@@ -79,12 +79,16 @@ function Get-SpotifyPlaylists {
     $ErrorActionPreference = 'Stop'
 
     # authorization
-    $PSBoundParameters.Add(
-        'Scopes', 
-        @('playlist-read-private', 'playlist-read-collaborative')
-    ) | Out-Null
+    $TokenParams = @{
+        Scopes = @('playlist-read-private', 'playlist-read-collaborative')
+    }
+    foreach ($param in @('ClientId', 'RedirectURI', 'ConfigFile')) {
+        if ($PSBoundParameters.ContainsKey($param)) {
+            $TokenParams.Add($param, $PSBoundParameters.TryGetValue($param))
+        }
+    }
     try {
-        $token = Get-SpotifyToken @PSBoundParameters
+        $token = Get-SpotifyToken @TokenParams
     }
     catch {
         Write-Error (
