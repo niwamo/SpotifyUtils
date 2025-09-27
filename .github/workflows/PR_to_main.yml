@@ -85,4 +85,5 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           PR_NUMBER: ${{ github.event.pull_request.number }}
         run: |
+          git fetch --all
           gh pr merge $PR_NUMBER --merge --delete-branch
