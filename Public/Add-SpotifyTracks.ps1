@@ -86,7 +86,7 @@ function Add-SpotifyTracks {
         
         # authorization
         $TokenParams = @{
-            Scopes      = @('user-library-modify')
+            Scopes = @('user-library-modify')
         }
         foreach ($param in @('ClientId', 'RedirectURI', 'ConfigFile')) {
             if ($PSBoundParameters.ContainsKey($param)) {

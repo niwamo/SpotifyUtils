@@ -77,12 +77,16 @@ function Get-SpotifyTracks {
     $ErrorActionPreference = 'Stop'
 
     # authorization
-    $PSBoundParameters.Add(
-        'Scopes', 
-        @('user-library-read')
-    ) | Out-Null
+    $TokenParams = @{
+        Scopes = @('user-library-read')
+    }
+    foreach ($param in @('ClientId', 'RedirectURI', 'ConfigFile')) {
+        if ($PSBoundParameters.ContainsKey($param)) {
+            $TokenParams.Add($param, $PSBoundParameters.TryGetValue($param))
+        }
+    }
     try {
-        $token = Get-SpotifyToken @PSBoundParameters
+        $token = Get-SpotifyToken @TokenParams
     }
     catch {
         Write-Error (
