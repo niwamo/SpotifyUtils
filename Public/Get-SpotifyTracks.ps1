@@ -81,7 +81,16 @@ function Get-SpotifyTracks {
         'Scopes', 
         @('user-library-read')
     ) | Out-Null
-    $token = Get-SpotifyToken @PSBoundParameters
+    try {
+        $token = Get-SpotifyToken @PSBoundParameters
+    }
+    catch {
+        Write-Error (
+            "There was a problem authenticating to the Spotify API.`n" +
+            "Please review the Authentication section at https://github.com/niwamo/SpotifyUtils.`n" +
+            "Error message: " + $_.Exception.Message
+        )
+    }
     $headers = @{ Authorization = "Bearer $token" }
 
     ##########################

@@ -94,7 +94,16 @@ function Add-SpotifyTracks {
                 $TokenParams.Add($param, $PSBoundParameters.TryGetValue($param))
             }
         }
-        $token = Get-SpotifyToken @TokenParams
+        try {
+            $token = Get-SpotifyToken @TokenParams
+        }
+        catch {
+            Write-Error (
+                "There was a problem authenticating to the Spotify API.`n" +
+                "Please review the Authentication section at https://github.com/niwamo/SpotifyUtils.`n" +
+                "Error message: " + $_.Exception.Message
+            )
+        }
         $headers = @{ Authorization = "Bearer $token" }
 
         ##########################
