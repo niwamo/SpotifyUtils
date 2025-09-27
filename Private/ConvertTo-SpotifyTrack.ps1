@@ -73,14 +73,15 @@ function ConvertTo-SpotifyTrack {
             )
         }
     }
+    if (! $results) { return }
     $diff = $Tracks.Count - $results.Count
     if ($diff) {
         Write-Warning "Failed to convert $diff of $($Tracks.Count) tracks into SpotifyTracks"
     }
-    $unique = [array] [System.Collections.Generic.HashSet[SpotifyTrack]] $results
+    $unique = [SpotifyTrack[]] ( [System.Collections.Generic.HashSet[SpotifyTrack]] $results )
     $diff = $results.Count - $unique.Count 
     if ($diff) {
         Write-Warning "Filtering $diff duplicates"
     }
-    return $unique
+    return ,$unique  # ',' to prevent unpacking
 }

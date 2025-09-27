@@ -114,10 +114,13 @@ function Get-MockContent {
     )
     switch ($Path) {
         { $_ -match ".*.env.json" } {
-            return '{ "ClientID" : "clientid from mocked .env.json", "RedirectURI" : "redirecturi from mocked .env.json" }'
+            return '{ "ClientID" : "mockedclientid", "RedirectURI" : "http://localhost:8080" }'
         }
         "mockfile.json" {
-            return '{ "ClientID" : "clientid from mockfile.json", "RedirectURI" : "redirecturi from mockfile.json" }'
+            return '{ "ClientID" : "mockedclientid", "RedirectURI" : "http://localhost:8080" }'
+        }
+        Default {
+            return [System.IO.File]::ReadAllText($Path)
         }
     }
 }
@@ -327,8 +330,11 @@ $playlistResponseSample = @'
 }
 '@
 
+# only one copy of 'trackSampleConverted' despite using two in
+# Invoke-MockPlaylists
+# ConvertTo-SpotifyTracks will de-duplicate
 $singlePlaylistOutput = @"
-{"Name":"playlist name","Owner":"playlist owner name","Tracks":[$trackSampleConverted,$trackSampleConverted]}
+{"Name":"playlist name","Owner":"playlist owner name","Tracks":[$trackSampleConverted]}
 "@
 
 $playlistOutput = @"

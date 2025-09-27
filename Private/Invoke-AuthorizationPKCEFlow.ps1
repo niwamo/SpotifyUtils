@@ -56,8 +56,10 @@ function Invoke-AuthorizationPKCEFlow {
     $params = @{
         URI = $uri
         MaximumRedirection = 0
-        SkipHttpErrorCheck = $true
         ErrorAction = 'SilentlyContinue'
+    }
+    if ($PSVersionTable.PSVersion.Major -gt 5) {
+        $params.Add('SkipHttpErrorCheck', $true)
     }
     $response = Invoke-WebRequest @params
     $authPage = $response.Headers.Location[0]

@@ -15,7 +15,7 @@ RootModule = 'SpotifyUtils.psm1'
 ModuleVersion = '0.0.1'
 
 # Supported PSEditions
-# CompatiblePSEditions = @()
+CompatiblePSEditions = @('Desktop', 'Core')
 
 # ID used to uniquely identify this module
 GUID = '9391d3a2-d744-40a5-b7bf-84d6ab5b7130'
@@ -30,10 +30,10 @@ CompanyName = 'Unknown'
 Copyright = '(c) niwamo. All rights reserved.'
 
 # Description of the functionality provided by this module
-# Description = ''
+Description = 'A PowerShell module for managing your Spotify tracks and playlists via Spotify''s API.'
 
 # Minimum version of the PowerShell engine required by this module
-# PowerShellVersion = ''
+PowerShellVersion = '5.1'
 
 # Name of the PowerShell host required by this module
 # PowerShellHostName = ''
@@ -69,7 +69,7 @@ Copyright = '(c) niwamo. All rights reserved.'
 # NestedModules = @()
 
 # Functions to export from this module, for best performance, do not use wildcards and do not delete the entry, use an empty array if there are no functions to export.
-FunctionsToExport = 'Add-SpotifyTracks', 'Get-SpotifyPlaylists', 'Get-SpotifyTracks', 
+FunctionsToExport = 'Add-SpotifyTracks', 'Get-SpotifyPlaylists', 'Get-SpotifyTracks',
                'Get-TracksFromFolder', 'Start-SpotifySession'
 
 # Cmdlets to export from this module, for best performance, do not use wildcards and do not delete the entry, use an empty array if there are no cmdlets to export.
@@ -96,13 +96,18 @@ PrivateData = @{
     PSData = @{
 
         # Tags applied to this module. These help with module discovery in online galleries.
-        # Tags = @()
+        Tags = @(
+            'Spotify', 'Module', 'PSModule', 'Utility', 'Utils',
+            'API', 'Music', 'Media', 'Playlist', 'Track',
+            'PSEdition_Core', 'PSEdition_Desktop',
+            'Windows', 'Linux', 'MacOS'
+        )
 
         # A URL to the license for this module.
-        # LicenseUri = ''
+        LicenseUri = 'https://github.com/niwamo/SpotifyUtils/raw/refs/heads/main/LICENSE.txt'
 
         # A URL to the main website for this project.
-        # ProjectUri = ''
+        ProjectUri = 'https://github.com/niwamo/SpotifyUtils'
 
         # A URL to an icon representing this module.
         # IconUri = ''

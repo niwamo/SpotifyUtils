@@ -16,11 +16,13 @@ InModuleScope SpotifyUtils {
         It "Should return ConfigFile's redirect if given ConfigFile" {
             Mock Test-Path { $true }
             $r = Get-ClientId -Params @{ConfigFile = 'mockfile.json'}
-            $r | Should -Be 'clientid from mockfile.json'
+            $r | Should -Be 'mockedclientid'
         }
         It "Should return .env.json's redirect if no params are passed and .env.json exists" {
             $r = Get-ClientId
-            $r | Should -Be 'clientid from mocked .env.json'
+            $r | Should -Be 'mockedclientid'
+        }
+        It "Should return .env.json's redirect if no params are passed and .env.json exists" {
         }
         It "Should throw an error if no params are passed and .env.json does not exist" {
             Mock Get-Content { throw "file does not exist" }

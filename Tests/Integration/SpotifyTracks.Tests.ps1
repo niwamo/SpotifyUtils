@@ -8,6 +8,7 @@ InModuleScope SpotifyUtils {
         Import-Module "$PSScriptRoot\..\SUCommonTestFuncs.psm1"
         Mock Invoke-WebRequest { Invoke-MockWebRequest @PesterBoundParameters }
         Mock Start-Process     { Start-MockProcess @PesterBoundParameters}
+        Mock Get-Content       { Get-MockContent @PesterBoundParameters }
         Mock Test-Path         { 
             if ($args[0] -eq "input.json") { return $true }
             else { return [System.IO.Path]::Exists($args[0]) }
