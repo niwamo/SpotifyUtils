@@ -38,7 +38,7 @@ Add-SpotifyTracks -Tracks $(Get-TracksFromFolder -Path ~\Songs)
 function Add-SpotifyTracks {
     [CmdletBinding()]
     param (
-        [Parameter(Mandatory=$false)]
+        [Parameter(Mandatory=$false, ValueFromPipeline=$true)]
         [Object[]] $Tracks,
 
         [ValidateScript({ Test-Path $_ })]
