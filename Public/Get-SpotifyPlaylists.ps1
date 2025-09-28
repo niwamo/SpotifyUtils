@@ -119,8 +119,13 @@ function Get-SpotifyPlaylists {
 
     Write-Information "Found $($playlists.Count) playlists. Fetching playlist tracks..."
 
+    #TODO: CHANGEME
     $playlistData = foreach ($playlist in $playlists) {
-        Write-Information "`tFetching tracks in '$($playlist.Name)'..."
+        Write-Information "Fetching tracks in '$($playlist.Name)'..."
+        if (! $playlist.tracks.href) {
+            Write-Warning "$($playlist.Name) missing tracks.href property, skipping"
+            continue
+        }
         $trackURI = $playlist.tracks.href
         $urlParams = @{
             fields = "next,offset,items(track(name,artists(name),album(name),show(name)))"
@@ -135,8 +140,16 @@ function Get-SpotifyPlaylists {
                 Invoke-WebRequest -Uri $uri -Headers $headers
             ).Content | ConvertFrom-Json
             # add to array
-            $newTracks = ConvertTo-SpotifyTrack -Tracks $response.items.track
-            $tracks.AddRange($newTracks) | Out-Null
+            try {
+                $responseTracks = $response.items.track | Where-Object -FilterScript { $null -ne $_ }
+                $newTracks = ConvertTo-SpotifyTrack -Tracks $responseTracks
+                $tracks.AddRange($newTracks) | Out-Null
+            }
+            catch {
+                Write-Warning "Failed adding tracks for $($playlist.Name), error msg: $($_.Exception.Message)"
+                Write-Debug "response data was:`n$($response | ConvertTo-Json -Depth 10)"
+                break
+            }
             if (! $response.next) { break }
             $urlParams.offset = $tracks.Count
             # avoid rate limiting
@@ -145,9 +158,9 @@ function Get-SpotifyPlaylists {
         [PSCustomObject]@{
             Name   = $playlist.name
             Owner  = $playlist.owner.display_name
-            Tracks = [array]$tracks
+            Tracks = [array] $tracks
         }
-        Write-Information "Done ($($tracks.Count))"
+        Write-Information "- Done (Retrieved $($tracks.Count) tracks)"
     }
 
     ##########################
@@ -163,7 +176,7 @@ function Get-SpotifyPlaylists {
         }
         if ($OutputFolder) {
             $tstamp = Get-Date -Format "yyyy-MM-dd-HH-mm-ss"
-            $fpath  = "$OutputFolder/$tstamp-playlist-export.json"
+            $fpath  = [System.IO.Path]::Join($OutputFolder, "$tstamp-playlist-export.json")
             Set-Content -Path $fpath -Encoding 'UTF8' -Value $out
             Write-Information "Wrote playlist data to $fpath"
             return
@@ -173,11 +186,26 @@ function Get-SpotifyPlaylists {
 
     if ($OutputFormat -eq 'csv') {
         # case where OutputFolder is NOT provided is handled at top of function
+        $tstamp = Get-Date -Format "yyyy-MM-dd-HH-mm-ss"
+        $outdir = "$tstamp-playlist-export"
+        $dPath = [System.IO.Path]::Join($OutputFolder, $outdir)
+        New-Item -ItemType Directory -Path $dPath | Out-Null
+        $numUnnamed = 0
         foreach ($plist in $playlistData) {
-            $tstamp = Get-Date -Format "yyyy-MM-dd-HH-mm-ss"
-            $outdir = New-Item -ItemType Directory -Path "$OutputFolder/$tstamp-playlist-export"
-            $fpath  = "$outdir/$($plist.Name).csv"
-            Export-Csv -InputObject $plist.Tracks -Encoding utf8 -Path $fpath
+            if (! $plist.Tracks) {
+                Write-Warning "Playlist $($plist.Name) has no tracks, skipping"
+                continue
+            }
+            $safeName = [string]($plist.Name).Replace('/', '-').Replace('\', '-')
+            if ($safeName -eq '') { 
+                $safeName = "unnamed-playlist-$numUnnamed"
+                $numUnnamed += 1
+            }
+            Write-Debug "plist.name was $($plist.Name), safeName is $safeName"
+            $fpath  = [System.IO.Path]::Join($OutputFolder, $outdir, "$safeName.csv")
+            $plist.Tracks |
+                Select-Object -Property name, album, @{n='artists'; e={[string]::Join(', ', $_.artists)}} |
+                Export-Csv -Encoding utf8 -Path $fpath -NoTypeInformation
         }
     }
 

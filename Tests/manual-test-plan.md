@@ -7,16 +7,45 @@ functionality.
 
 All tests assume installation and authentication have been configured.
 
-1. `Start-SpotifySession`
-2. Execute `Get-TracksFromFolder` against a local folder containing song files.
-   Manually validate results.
-3. `$tracks = Get-SpotifyTracks` - no output args. Spot check output.
-4. `Get-SpotifyTracks -OutputFormat json -OutputFile ~\Desktop\songs.json` -
-   Spot check output.
-5. `mkdir ~\Desktop\playlists; Get-SpotifyPlaylists -OutputFormat csv
-   -OutputFolder ~\Desktop\playlists` - Spot check output.
-6. `Add-SpotifyTracks -InputFile ~\Desktop\playlists\*.csv` - Spot check output.
-   - Note: songs already present in your library are ignored. Check output
-     for errors only.
-7. `$tracks = Get-TracksFromFolder; $tracks | Add-SpotifyTracks;
-   Add-SpotifyTracks -Tracks $tracks` - Again, just checking for errors.
+```powershell
+Start-SpotifySession
+```
+
+```powershell
+Get-TracksFromFolder -Path <PATH>
+```
+Execute against a local folder containing song files.
+Manually validate results.
+
+```powershell
+$tracks = Get-SpotifyTracks
+```
+no output args. Spot check output.
+
+```
+Get-SpotifyTracks -OutputFormat json -OutputFile ~\Desktop\songs.json
+```
+Spot check output.
+
+```powershell
+mkdir ~\Desktop\playlists
+Get-SpotifyPlaylists -OutputFormat csv -OutputFolder ~\Desktop\playlists
+```
+Spot check output.
+
+```powershell
+$file = Get-ChildItem -Path "~\Desktop\playlists\" -Filter "*.csv" | Select -First 1
+$content = Get-Content -Path $file | Select -First 20
+Set-Content -Path "~\Desktop\playlists\short-list.csv" -Value $content
+Add-SpotifyTracks -InputFile ~\Desktop\playlists\short-list.csv
+```
+Spot check output.
+**Note**: songs already present in your library are ignored. Check output
+for errors only.
+
+```powershell
+$tracks = Get-TracksFromFolder
+$tracks | Add-SpotifyTracks
+Add-SpotifyTracks -Tracks $tracks
+```
+Again, just checking for errors.

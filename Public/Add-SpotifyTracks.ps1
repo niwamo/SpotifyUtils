@@ -116,9 +116,6 @@ function Add-SpotifyTracks {
             $uri = "$($script:SEARCH_URI)?type=track&q=artist:""$($song.artists[0])"" track:""$($song.name)"""
             $results = (Invoke-WebRequest -Uri $uri -Headers $headers).Content | ConvertFrom-Json
             $top = $results.tracks.items[0]
-
-            Write-Debug "top: $($top | ConvertTo-Json -Depth 5)"
-
             if ($top.name -match "^$($song.name)" -and $top.artists[0].name -eq $song.artists[0]) {
                 $params = @{
                     URI         = "$script:MYTRACKS_URI"
@@ -127,9 +124,6 @@ function Add-SpotifyTracks {
                     Body        = "{""ids"":[""$($top.id)""]}"
                     Headers     = $headers
                 }
-
-                Write-Debug "params: $($params | ConvertTo-Json -Depth 5)"
-
                 Invoke-WebRequest @params | Out-Null
                 Write-Debug "Added $($song.name)"
             }

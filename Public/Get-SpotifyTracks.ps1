@@ -135,7 +135,7 @@ function Get-SpotifyTracks {
         }
         if ($OutputFolder) {
             $tstamp = Get-Date -Format "yyyy-MM-dd-HH-mm-ss"
-            $fpath  = "$OutputFolder/$tstamp-playlist-export.json"
+            $fpath  = [System.IO.Path]::Join($OutputFolder, "$tstamp-playlist-export.json")
             Set-Content -Path $fpath -Encoding 'UTF8' -Value $out
             Write-Information "Wrote playlist data to $fpath"
             return
@@ -152,7 +152,7 @@ function Get-SpotifyTracks {
         }
         if ($OutputFolder) {
             $tstamp = Get-Date -Format "yyyy-MM-dd-HH-mm-ss"
-            $fpath  = "$OutputFolder/$tstamp-playlist-export.json"
+            $fpath  = [System.IO.Path]::Join($OutputFolder, "$tstamp-playlist-export.csv")
             Set-Content -Path $fpath -Encoding 'UTF8' -Value $out
             Write-Information "Wrote playlist data to $fpath"
             return
