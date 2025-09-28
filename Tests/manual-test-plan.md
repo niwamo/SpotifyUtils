@@ -39,7 +39,7 @@ Get-SpotifyPlaylists -OutputFormat csv -OutputFolder ~\Desktop\playlists
 Spot check output.
 
 ```powershell
-$file = Get-ChildItem -Path "~\Desktop\playlists\" -Filter "*.csv" | Select -First 1
+$file = Get-ChildItem -Path "~\Desktop\playlists\" -Filter "*.csv" -Recurse | Select -First 1
 $content = Get-Content -Path $file | Select -First 20
 Set-Content -Path "~\Desktop\playlists\short-list.csv" -Value $content
 Add-SpotifyTracks -InputFile ~\Desktop\playlists\short-list.csv

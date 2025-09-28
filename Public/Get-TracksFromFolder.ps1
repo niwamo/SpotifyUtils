@@ -19,7 +19,7 @@ function Get-TracksFromFolder {
         [ValidateScript({
             (Test-Path $_) -and ((Get-Item $_) -is [System.IO.DirectoryInfo])
         })]
-        [Parameter(Mandatory=$true)]
+        [Parameter(Mandatory=$true, ValueFromPipeline=$true, Position=0)]
         [string] $Path 
     )
     $sh = New-Object -ComObject Shell.Application

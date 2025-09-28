@@ -63,5 +63,5 @@ function Start-SpotifySession {
         )
     }
 
-    Write-Information "${script:GREEN}Connected.${script:RESETANSI}"
+    Write-Output "${script:GREEN}Connected.${script:RESETANSI}"
 }
