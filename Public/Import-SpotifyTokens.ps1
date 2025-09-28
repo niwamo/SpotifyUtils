@@ -26,7 +26,7 @@ function Import-SpotifyTokens {
                 $script:TOKENS.Add([SpotifyToken] $token) | Out-Null
             }
             catch {
-                $numFailed += 1   
+                $numFailed += 1
             }
         }
         if ($numFailed) {

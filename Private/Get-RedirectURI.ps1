@@ -17,7 +17,7 @@ function Get-RedirectURI {
     if (! $rURI) {
         throw (
             "Could not find RedirectURI via command-line parameter, " +
-            "ConfigFile (passed as parameter), or default Configfile location" + 
+            "ConfigFile (passed as parameter), or default Configfile location" +
             "($script:CONFIGFILE)"
         )
     }

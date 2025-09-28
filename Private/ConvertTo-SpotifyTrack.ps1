@@ -38,19 +38,19 @@ class SpotifyTrack {
     }
 
     # interface required for HashSet / Select -Unique
-    [bool] Equals($x) { 
-        if ( $x -is [SpotifyTrack] ) { 
+    [bool] Equals($x) {
+        if ( $x -is [SpotifyTrack] ) {
             return ($x.GetHashCode() -eq $this.GetHashCode())
 	    } else {
             return $false
-        } 
+        }
     }
 
     [int] GetHashCode() {
-        $stringified = [string]::Format( 
+        $stringified = [string]::Format(
             "{0}{1}{2}", $this.name, $this.artist, $this.album
         )
-        return $stringified.GetHashCode() 
+        return $stringified.GetHashCode()
     }
 }
 
@@ -71,7 +71,7 @@ function ConvertTo-SpotifyTrack {
     if (! $results) { return }
     $numFailed = $Tracks.Count - $results.Count
     $unique = [SpotifyTrack[]] ( [System.Collections.Generic.HashSet[SpotifyTrack]] $results )
-    $numDuplicates = $results.Count - $unique.Count 
+    $numDuplicates = $results.Count - $unique.Count
     Write-Debug (
         "ConvertTo-SpotifyTrack: Converted $($unique.Count) " +
         "of the requested $($Tracks.Count) SpotifyTracks " +

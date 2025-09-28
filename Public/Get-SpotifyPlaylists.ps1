@@ -132,8 +132,8 @@ function Get-SpotifyPlaylists {
         }
         $tracks = [System.Collections.ArrayList]::New()
         while ($true) {
-            $uParams = foreach ($param in $urlParams.Keys) { 
-                [string]::Format( "{0}={1}", $param, $urlParams.$param ) 
+            $uParams = foreach ($param in $urlParams.Keys) {
+                [string]::Format( "{0}={1}", $param, $urlParams.$param )
             }
             $uri = [string]::Format("{0}?{1}", $trackURI, [string]::Join("&", $uParams))
             $response = (
@@ -197,7 +197,7 @@ function Get-SpotifyPlaylists {
                 continue
             }
             $safeName = [string]($plist.Name).Replace('/', '-').Replace('\', '-')
-            if ($safeName -eq '') { 
+            if ($safeName -eq '') {
                 $safeName = "unnamed-playlist-$numUnnamed"
                 $numUnnamed += 1
             }

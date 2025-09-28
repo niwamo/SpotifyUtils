@@ -49,7 +49,7 @@ function Start-SpotifySession {
 
     # authorization
     $PSBoundParameters.Add(
-        'Scopes', 
+        'Scopes',
         $ALL_SCOPES
     ) | Out-Null
     try {

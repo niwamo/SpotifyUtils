@@ -20,12 +20,12 @@ function Get-TracksFromFolder {
             (Test-Path $_) -and ((Get-Item $_) -is [System.IO.DirectoryInfo])
         })]
         [Parameter(Mandatory=$true, ValueFromPipeline=$true, Position=0)]
-        [string] $Path 
+        [string] $Path
     )
     $sh = New-Object -ComObject Shell.Application
     $folder = $sh.NameSpace((Get-Item -Path $Path).FullName)
     $properties = @{}
-    for ($i = 0; $i -lt 400; $i++) { 
+    for ($i = 0; $i -lt 400; $i++) {
         $name = $folder.GetDetailsOf($null, $i)
         if ($name) { $properties.$name = $i }
     }

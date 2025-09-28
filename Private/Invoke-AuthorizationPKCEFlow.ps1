@@ -48,8 +48,8 @@ function Invoke-AuthorizationPKCEFlow {
         code_challenge_method = 'S256'
         code_challenge        = $b64hash
     }
-    $uParams = foreach ($param in $urlParams.Keys) { 
-        [string]::Format( "{0}={1}", $param, $urlParams.$param ) 
+    $uParams = foreach ($param in $urlParams.Keys) {
+        [string]::Format( "{0}={1}", $param, $urlParams.$param )
     }
     $uri = [string]::Format("{0}?{1}", $script:AUTH_URI, [string]::Join("&", $uParams))
 
@@ -99,7 +99,7 @@ function Invoke-AuthorizationPKCEFlow {
     $pinfo.RedirectStandardOutput = $true
     $pinfo.UseShellExecute = $false
     $pinfo.Arguments = @(
-        "-NonInteractive", 
+        "-NonInteractive",
         "-Command", [string]::Format("{0}`n{1}", "`$rURI = '$rURI'", $sb.ToString()))
     $p = New-Object System.Diagnostics.Process
     $p.StartInfo = $pinfo

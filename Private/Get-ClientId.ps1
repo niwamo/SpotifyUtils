@@ -17,7 +17,7 @@ function Get-ClientId {
     if (! $cId) {
         throw (
             "Could not find ClientId via command-line parameter, " +
-            "ConfigFile (passed as parameter), or default Configfile location" + 
+            "ConfigFile (passed as parameter), or default Configfile location" +
             "($script:CONFIGFILE)"
         )
     }
