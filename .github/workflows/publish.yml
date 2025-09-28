@@ -11,13 +11,15 @@ on:
       - "Private/**"
     branches:
       - 'main'
+    tags-ignore:
+      - "v*"
 
 permissions:
   checks: write
   contents: read
 
 jobs:
-  tests:
+  publish:
     name: Publish module
     runs-on: ubuntu-latest
 
