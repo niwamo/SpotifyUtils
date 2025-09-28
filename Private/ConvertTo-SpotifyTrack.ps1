@@ -24,7 +24,7 @@ class SpotifyTrack {
         # ARTIST(S) NAME
         if ($obj.artists -and $obj.artists -is [string]) {
             $this.artists = [array] (
-                $obj.album.split(';').split(',').ForEach({$_.trim()})
+                $obj.artists.split(';').split(',').ForEach({$_.trim()})
             )
         }
         elseif ($obj.artists.name) {
