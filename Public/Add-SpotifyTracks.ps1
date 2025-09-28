@@ -38,7 +38,7 @@ Add-SpotifyTracks -Tracks $(Get-TracksFromFolder -Path ~\Songs)
 function Add-SpotifyTracks {
     [CmdletBinding()]
     param (
-        [Parameter(Mandatory=$false, ValueFromPipeline=$true)]
+        [Parameter(Mandatory=$false, ValueFromPipeline=$true, Position=0)]
         [Object[]] $Tracks,
 
         [ValidateScript({ Test-Path $_ })]
@@ -111,12 +111,30 @@ function Add-SpotifyTracks {
 
         $missing = [System.Collections.ArrayList]::new()
         foreach ($song in $tracks) {
-            Write-Debug "Trying to add $($song.name) by $($song.artists[0])"
             # https://stackoverflow.com/questions/73680222
-            $uri = "$($script:SEARCH_URI)?type=track&q=artist:""$($song.artists[0])"" track:""$($song.name)"""
-            $results = (Invoke-WebRequest -Uri $uri -Headers $headers).Content | ConvertFrom-Json
-            $top = $results.tracks.items[0]
-            if ($top.name -match "^$($song.name)" -and $top.artists[0].name -eq $song.artists[0]) {
+            $uri = [string]::Format(
+                "{0}?type=track&q=artist:""{1}"" track:""{2}""",
+                $script:SEARCH_URI, $song.artists[0], $song.name
+            )
+            $results = (
+                Invoke-WebRequest -Uri $uri -Headers $headers
+            ).Content | ConvertFrom-Json
+            $match = $false
+            if ($results.tracks.items -and $results.tracks.items.Count -gt 0) {
+                $top = $results.tracks.items[0]
+                $match = $true  # assume true, set to false if any comparisons fail
+                $comparisons = @(
+                    @($song.name, $top.name), 
+                    @($song.artists[0], $top.artists[0].name)
+                )
+                foreach ($set in $comparisons) {
+                    $cmp1, $cmp2 = $set
+                    $len = [math]::min($cmp1.Length, $cmp2.Length)
+                    $match = $cmp1.Substring(0, $len) -eq $cmp2.Substring(0, $len)
+                    if (! $match) { break }
+                }
+            }
+            if ($match) {
                 $params = @{
                     URI         = "$script:MYTRACKS_URI"
                     Method      = 'Put'
@@ -128,7 +146,20 @@ function Add-SpotifyTracks {
                 Write-Debug "Added $($song.name)"
             }
             else {
-                Write-Debug "Could not find $($song.name)"
+                $songInfo = [string]::Format(
+                    "    song.name: {0}, song.artists[0]: {1}",
+                    $song.name, $song.artists[0]
+                )
+                $topInfo = if ($results.tracks.items) {
+                    [string]::Format(
+                        "    top.name: {0}, top.artists[0].name: {1}",
+                        $top.name, $top.artists[0].name
+                    )
+                } else { "    search results were null" }
+                $logMessage = [string]::Format(
+                    "Could not find {0}`n{1}`n{2}", $song.name, $songInfo, $topInfo
+                )
+                Write-Debug $logMessage
                 $missing.Add($song) | Out-Null
             }
 
