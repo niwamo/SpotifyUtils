@@ -29,16 +29,17 @@ jobs:
           $ErrorActionPreference = 'Stop'
           git fetch --all
           $tag = $(git describe --tags --exact-match).trim()
-          $tagVersionStr = $tag.Substring(1, $tag.Length - 1)
-          $tagVersion = [version]::Parse($tagVersionStr)
+          $tagVersion = $tag.Substring(1, $tag.Length - 1)
           $manifestPath = (Get-ChildItem -Path . -Filter "*.psd1").FullName
           $module = Test-ModuleManifest -Path $manifestPath
-          $moduleVersion = $module.version
-          if (! $moduleVersion -eq $tagVersion) {
-            Write-Error "Module version does not match tag version"
-            exit 1
+          $modVersion = $module.version.ToString()
+          Write-Output "Tag version is $tagVersion, manifest version is $modVersion"
+          if ($tagVersion -eq $modVersion) {
+            gh release create $tag --verify-tag --fail-on-no-commits
           }
-          gh release create $tag --verify-tag --fail-on-no-commits
+          else {
+            throw "Tag version does not match module manifest version"
+          }
 
   publish:
     name: Publish module
