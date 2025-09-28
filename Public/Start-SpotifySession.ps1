@@ -49,7 +49,7 @@ function Start-SpotifySession {
 
     # authorization
     $PSBoundParameters.Add(
-        'Scopes',
+        'Scopes', 
         $ALL_SCOPES
     ) | Out-Null
     try {
@@ -58,7 +58,7 @@ function Start-SpotifySession {
     catch {
         Write-Error (
             "There was a problem authenticating to the Spotify API.`n" +
-            "Please review the Authentication section at https://github.com/niwamo/SpotifyUtils.`n" +
+            "Please review the Authentication docs at $script:PROJECT_URL.`n" +
             "Error message: " + $_.Exception.Message
         )
     }

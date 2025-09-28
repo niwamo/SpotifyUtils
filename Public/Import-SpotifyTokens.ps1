@@ -30,7 +30,11 @@ function Import-SpotifyTokens {
             }
         }
         if ($numFailed) {
-            Write-Warning "Failed to import $numFailed of $($Tokens.Count) tokens"
+            $msg = [string]::Format(
+                "Failed to import {0} of {1} tokens",
+                $numFailed, $inputData.Count
+            )
+            Write-Warning $msg
         }
     }
 }

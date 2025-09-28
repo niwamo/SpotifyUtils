@@ -79,9 +79,7 @@ function Add-SpotifyTracks {
     }
   
     end {
-        Write-Debug (
-            "Received $($inputData.Count) tracks to add"
-        )
+        Write-Debug "Received $($inputData.Count) tracks to add"
         $tracks = ConvertTo-SpotifyTrack -Tracks $inputData
         
         # authorization
@@ -93,16 +91,7 @@ function Add-SpotifyTracks {
                 $TokenParams.Add($param, $PSBoundParameters.TryGetValue($param))
             }
         }
-        try {
-            $token = Get-SpotifyToken @TokenParams
-        }
-        catch {
-            Write-Error (
-                "There was a problem authenticating to the Spotify API.`n" +
-                "Please review the Authentication section at https://github.com/niwamo/SpotifyUtils.`n" +
-                "Error message: " + $_.Exception.Message
-            )
-        }
+        $token = Get-SpotifyToken @TokenParams
         $headers = @{ Authorization = "Bearer $token" }
 
         ##########################
@@ -111,7 +100,10 @@ function Add-SpotifyTracks {
 
         $missing = [System.Collections.ArrayList]::new()
         foreach ($song in $tracks) {
-            # https://stackoverflow.com/questions/73680222
+            # sleep at beginning in case of a 'continue'
+            [System.Threading.Thread]::Sleep($script:API_DELAY)
+            # FIND SONG
+            #   https://stackoverflow.com/questions/73680222
             $uri = [string]::Format(
                 "{0}?type=track&q=artist:""{1}"" track:""{2}""",
                 $script:SEARCH_URI, $song.artists[0], $song.name
@@ -119,55 +111,57 @@ function Add-SpotifyTracks {
             $results = (
                 Invoke-WebRequest -Uri $uri -Headers $headers
             ).Content | ConvertFrom-Json
-            $match = $false
-            if ($results.tracks.items -and $results.tracks.items.Count -gt 0) {
-                $top = $results.tracks.items[0]
-                $match = $true  # assume true, set to false if any comparisons fail
-                $comparisons = @(
-                    @($song.name, $top.name),
-                    @($song.artists[0], $top.artists[0].name)
-                )
-                foreach ($set in $comparisons) {
-                    $cmp1, $cmp2 = $set
-                    $len = [math]::min($cmp1.Length, $cmp2.Length)
-                    $match = $cmp1.Substring(0, $len) -eq $cmp2.Substring(0, $len)
-                    if (! $match) { break }
-                }
-            }
-            if ($match) {
-                $params = @{
-                    URI         = "$script:MYTRACKS_URI"
-                    Method      = 'Put'
-                    ContentType = 'application/json'
-                    Body        = "{""ids"":[""$($top.id)""]}"
-                    Headers     = $headers
-                }
-                Invoke-WebRequest @params | Out-Null
-                Write-Debug "Added $($song.name)"
-            }
-            else {
-                $songInfo = [string]::Format(
-                    "    song.name: {0}, song.artists[0]: {1}",
+            # HANDLE NULL RESULTS
+            if (! $results.tracks.items -or $results.tracks.items.Count -eq 0) {
+                $log = [string]::Format(
+                    "Could not find {0} by {1}; search results were null",
                     $song.name, $song.artists[0]
                 )
-                $topInfo = if ($results.tracks.items) {
-                    [string]::Format(
-                        "    top.name: {0}, top.artists[0].name: {1}",
-                        $top.name, $top.artists[0].name
-                    )
-                } else { "    search results were null" }
+                Write-Debug $log
+                $missing.Add($song) | Out-Null
+                continue
+            }
+            $top = $results.tracks.items[0]
+            # CHECK MATCH
+            $match = $true  
+            $comparisons = @(
+                @($song.name, $top.name),
+                @($song.artists[0], $top.artists[0].name)
+            )
+            foreach ($set in $comparisons) {
+                $cmp1, $cmp2 = $set
+                $len = [math]::min($cmp1.Length, $cmp2.Length)
+                $match = $cmp1.Substring(0, $len) -eq $cmp2.Substring(0, $len)
+                if (! $match) { break }
+            }
+            # HANDLE MISSING MATCH
+            if (!not $match) {
                 $logMessage = [string]::Format(
-                    "Could not find {0}`n{1}`n{2}", $song.name, $songInfo, $topInfo
+                    "Could not find {0} by {1}, top result was {2} by {3}",
+                    $song.name, $song.artists[0],
+                    $top.name, $top.artists[0].name
                 )
                 Write-Debug $logMessage
                 $missing.Add($song) | Out-Null
             }
-
-            [System.Threading.Thread]::Sleep($script:API_DELAY)
+            # ADD MATCHED SONG
+            $params = @{
+                URI         = "$script:MYTRACKS_URI"
+                Method      = 'Put'
+                ContentType = 'application/json'
+                Body        = "{""ids"":[""$($top.id)""]}"
+                Headers     = $headers
+            }
+            Invoke-WebRequest @params | Out-Null
+            Write-Debug "Added $($song.name)"
         }
 
         if ($missing.Count) {
-            Write-Warning "Failed to add $($missing.Count) tracks, returning them in an array"
+            $msg = [string]::Format(
+                "Failed to add {0} tracks, returning them in an array",
+                $missing.Count
+            )
+            Write-Warning $msg
             return $missing
         }
     }

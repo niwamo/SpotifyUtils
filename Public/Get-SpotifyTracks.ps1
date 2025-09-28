@@ -70,7 +70,7 @@ function Get-SpotifyTracks {
         throw 'OutputFile and OutputFolder are mutually exclusive'
     }
     if ($OutputFile -and $OutputFolder -and !$OutputFormat) {
-        throw 'OutputFormat must be specified when using OutputFile/OutputFolder'
+        throw 'OutputFormat must be specified when using OutputFile/Folder'
     }
 
     Set-StrictMode -Version 1.0
@@ -85,16 +85,7 @@ function Get-SpotifyTracks {
             $TokenParams.Add($param, $PSBoundParameters.TryGetValue($param))
         }
     }
-    try {
-        $token = Get-SpotifyToken @TokenParams
-    }
-    catch {
-        Write-Error (
-            "There was a problem authenticating to the Spotify API.`n" +
-            "Please review the Authentication section at https://github.com/niwamo/SpotifyUtils.`n" +
-            "Error message: " + $_.Exception.Message
-        )
-    }
+    $token = Get-SpotifyToken @TokenParams
     $headers = @{ Authorization = "Bearer $token" }
 
     ##########################
@@ -135,7 +126,9 @@ function Get-SpotifyTracks {
         }
         if ($OutputFolder) {
             $tstamp = Get-Date -Format "yyyy-MM-dd-HH-mm-ss"
-            $fpath  = [System.IO.Path]::Join($OutputFolder, "$tstamp-playlist-export.json")
+            $fpath  = [System.IO.Path]::Join(
+                $OutputFolder, "$tstamp-playlist-export.json"
+            )
             Set-Content -Path $fpath -Encoding 'UTF8' -Value $out
             Write-Information "Wrote playlist data to $fpath"
             return
@@ -144,9 +137,7 @@ function Get-SpotifyTracks {
     }
 
     if ($OutputFormat -eq 'csv') {
-        $out = $savedTracks |
-            Select-Object -Property name, album, @{n='artists'; e={[string]::Join(', ', $_.artists)}} |
-            ConvertTo-Csv
+        $out = Convert-TracksToCsv -Tracks $savedTracks
         if ($OutputFile) {
             Set-Content -Path $OutputFile -Encoding 'UTF8' -Value $out
             Write-Information "Wrote playlist data to $OutputFile"
@@ -154,7 +145,9 @@ function Get-SpotifyTracks {
         }
         if ($OutputFolder) {
             $tstamp = Get-Date -Format "yyyy-MM-dd-HH-mm-ss"
-            $fpath  = [System.IO.Path]::Join($OutputFolder, "$tstamp-playlist-export.csv")
+            $fpath  = [System.IO.Path]::Join(
+                $OutputFolder, "$tstamp-playlist-export.csv"
+            )
             Set-Content -Path $fpath -Encoding 'UTF8' -Value $out
             Write-Information "Wrote playlist data to $fpath"
             return

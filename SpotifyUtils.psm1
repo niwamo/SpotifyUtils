@@ -49,6 +49,7 @@ if ($updateParams.Count -gt 0) {
 }
 
 # Module-Level Variables
+$script:PROJECT_URL     = 'https://github.com/niwamo/SpotifyUtils'
 $script:CONFIGFILE      = "$PSScriptRoot\.env.json"
 
 $script:AUTH_URI        = 'https://accounts.spotify.com/authorize'

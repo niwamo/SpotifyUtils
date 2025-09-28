@@ -87,16 +87,7 @@ function Get-SpotifyPlaylists {
             $TokenParams.Add($param, $PSBoundParameters.TryGetValue($param))
         }
     }
-    try {
-        $token = Get-SpotifyToken @TokenParams
-    }
-    catch {
-        Write-Error (
-            "There was a problem authenticating to the Spotify API.`n" +
-            "Please review the Authentication section at https://github.com/niwamo/SpotifyUtils.`n" +
-            "Error message: " + $_.Exception.Message
-        )
-    }
+    $token = Get-SpotifyToken @TokenParams
     $headers = @{ Authorization = "Bearer $token" }
 
     ##########################
@@ -117,37 +108,57 @@ function Get-SpotifyPlaylists {
         [System.Threading.Thread]::Sleep($script:API_DELAY)
     }
 
-    Write-Information "Found $($playlists.Count) playlists. Fetching playlist tracks..."
+    $msg = [string]::Format(
+        "Found {0} playlists. Fetching tracks...", $playlists.Count
+    )
+    Write-Information $msg
 
     #TODO: CHANGEME
     $playlistData = foreach ($playlist in $playlists) {
         Write-Information "Fetching tracks in '$($playlist.Name)'..."
         if (! $playlist.tracks.href) {
-            Write-Warning "$($playlist.Name) missing tracks.href property, skipping"
+            $msg = [string]::Format(
+                "{0} missing tracks.href property, skipping", $playlist.Name
+            )
+            Write-Warning $msg
             continue
         }
         $trackURI = $playlist.tracks.href
         $urlParams = @{
-            fields = "next,offset,items(track(name,artists(name),album(name),show(name)))"
+            fields = [string]::Join(',', @(
+                "next",
+                "offset",
+                "items(track(name,artists(name),album(name),show(name)))"
+            ))
         }
         $tracks = [System.Collections.ArrayList]::New()
         while ($true) {
             $uParams = foreach ($param in $urlParams.Keys) {
                 [string]::Format( "{0}={1}", $param, $urlParams.$param )
             }
-            $uri = [string]::Format("{0}?{1}", $trackURI, [string]::Join("&", $uParams))
+            $uri = [string]::Format(
+                "{0}?{1}", $trackURI, [string]::Join("&", $uParams)
+            )
             $response = (
                 Invoke-WebRequest -Uri $uri -Headers $headers
             ).Content | ConvertFrom-Json
             # add to array
             try {
-                $responseTracks = $response.items.track | Where-Object -FilterScript { $null -ne $_ }
+                $responseTracks = $response.items.track | 
+                    Where-Object -FilterScript { $null -ne $_ }
                 $newTracks = ConvertTo-SpotifyTrack -Tracks $responseTracks
                 $tracks.AddRange($newTracks) | Out-Null
             }
             catch {
-                Write-Warning "Failed adding tracks for $($playlist.Name), error msg: $($_.Exception.Message)"
-                Write-Debug "response data was:`n$($response | ConvertTo-Json -Depth 10)"
+                $warnMsg = [string]::Format(
+                    "failed adding tracks for {0}, error msg: {1}",
+                    $playlist.Name, $_.Exception.Message
+                )
+                Write-Warning $warnMsg
+                Write-Debug (
+                    "response data was:`n" + 
+                    $response | ConvertTo-Json -Depth 10
+                )
                 break
             }
             if (! $response.next) { break }
@@ -176,7 +187,9 @@ function Get-SpotifyPlaylists {
         }
         if ($OutputFolder) {
             $tstamp = Get-Date -Format "yyyy-MM-dd-HH-mm-ss"
-            $fpath  = [System.IO.Path]::Join($OutputFolder, "$tstamp-playlist-export.json")
+            $fpath  = [System.IO.Path]::Join(
+                $OutputFolder, "$tstamp-playlist-export.json"
+            )
             Set-Content -Path $fpath -Encoding 'UTF8' -Value $out
             Write-Information "Wrote playlist data to $fpath"
             return
@@ -196,16 +209,19 @@ function Get-SpotifyPlaylists {
                 Write-Warning "Playlist $($plist.Name) has no tracks, skipping"
                 continue
             }
-            $safeName = [string]($plist.Name).Replace('/', '-').Replace('\', '-')
+            $safeName = [string]($plist.Name).
+                Replace('/', '-').
+                Replace('\', '-')
             if ($safeName -eq '') {
                 $safeName = "unnamed-playlist-$numUnnamed"
                 $numUnnamed += 1
             }
             Write-Debug "plist.name was $($plist.Name), safeName is $safeName"
-            $fpath  = [System.IO.Path]::Join($OutputFolder, $outdir, "$safeName.csv")
-            $plist.Tracks |
-                Select-Object -Property name, album, @{n='artists'; e={[string]::Join(', ', $_.artists)}} |
-                Export-Csv -Encoding utf8 -Path $fpath -NoTypeInformation
+            $fpath  = [System.IO.Path]::Join(
+                $OutputFolder, $outdir, "$safeName.csv"
+            )
+            $out = Convert-TracksToCsv -Tracks $plist.Tracks
+            Set-Content -Path $fpath -Encoding 'UTF8' -Value $out
         }
     }
 
