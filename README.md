@@ -17,6 +17,12 @@ installed with:
 Install-Module SpotifyUtils
 ```
 
+After installation, it can be updated with:
+
+```powershell
+Update-Module SpotifyUtils
+```
+
 ## Initial Setup
 
 1. Create a Spotify 'app'

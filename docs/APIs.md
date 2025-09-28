@@ -1,12 +1,12 @@
 # Spotify API Endpoints
 
-Spotify's APIs are remarkably well-documented, minimizing the need to provide
+Spotify's APIs are reasonably well-documented, minimizing the need to provide
 example requests and responses here. Instead, I've linked to the existing
 documentation for each API endpoint used in this module.
 
 ## Authentication
 
-Endpoint(s): 
+Endpoint(s):
 - https://accounts.spotify.com/authorize
 - https://accounts.spotify.com/api/token
 
