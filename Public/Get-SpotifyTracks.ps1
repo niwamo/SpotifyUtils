@@ -144,7 +144,9 @@ function Get-SpotifyTracks {
     }
 
     if ($OutputFormat -eq 'csv') {
-        $out = $savedTracks | ConvertTo-Csv
+        $out = $savedTracks | 
+            Select-Object -Property name, album, @{n='artists'; e={[string]::Join(', ', $_.artists)}} |
+            ConvertTo-Csv
         if ($OutputFile) {
             Set-Content -Path $OutputFile -Encoding 'UTF8' -Value $out
             Write-Information "Wrote playlist data to $OutputFile"
