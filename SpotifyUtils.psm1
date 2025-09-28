@@ -1,22 +1,25 @@
+$ErrorActionPreference = 'Stop'
+Set-StrictMode -Version 1.0
+
 $psd1files = Get-ChildItem -Path $PSScriptRoot -Filter "*.psd1"
 if ($psd1files.Count -ne 1) {
-    throw "Failed to find the module's psd1 file"
+    throw "Failed to find the module's .psd1 file"
 }
-$manifest = $psd1files[0].FullName
-$publicFunctionsPath = "$PSScriptRoot\Public\"
-$privateFunctionsPath = "$PSScriptRoot\Private"
-$currentManifest = Test-ModuleManifest $manifest
+$manifestFile = $psd1files[0].FullName
+$pubFuncPath = "$PSScriptRoot\Public"
+$priFuncPath = "$PSScriptRoot\Private"
+$manifestData = Test-ModuleManifest $manifestFile
 
 # dot-source all functions
-$publicFunctions = Get-ChildItem -Path $publicFunctionsPath | Where-Object {$_.Extension -eq '.ps1'}
-$privateFunctions = Get-ChildItem -Path $privateFunctionsPath | Where-Object {$_.Extension -eq '.ps1'}
-$publicFunctions | ForEach-Object { . $_.FullName }
-$privateFunctions | ForEach-Object { . $_.FullName }
+$pubFuncs = Get-ChildItem -Path $pubFuncPath -Filter "*.ps1"
+$priFuncs = Get-ChildItem -Path $priFuncPath -Filter "*.ps1"
+$pubFuncs | ForEach-Object { . $_.FullName }
+$priFuncs | ForEach-Object { . $_.FullName }
 
 $aliases = @()
 
 # Export all of the public functions from this module
-foreach ($func in $publicFunctions) {
+foreach ($func in $pubFuncs) {
     Export-ModuleMember -Function $func.BaseName
     $alias = Get-Alias -Definition $func.BaseName -ErrorAction SilentlyContinue
     foreach ($a in $alias) {
@@ -25,27 +28,23 @@ foreach ($func in $publicFunctions) {
     }
 }
 
-# Update module manifest
-$functionsAdded = $publicFunctions | Where-Object {$_.BaseName -notin $currentManifest.ExportedFunctions.Keys}
-$functionsRemoved = $currentManifest.ExportedFunctions.Keys | Where-Object {$_ -notin $publicFunctions.BaseName}
-$aliasesAdded = $aliases | Where-Object {$_ -notin $currentManifest.ExportedAliases.Keys}
-$aliasesRemoved = $currentManifest.ExportedAliases.Keys | Where-Object {$_ -notin $aliases}
-
-if ($functionsAdded -or $functionsRemoved -or $aliasesAdded -or $aliasesRemoved) {
+# Update manifest
+$updateParams = @{}
+if ( [set] $pubFuncs.BaseName -ne [set] $manifestData.ExportedFunctions.Keys) {
+    $updateParams.Add('FunctionsToExport', $pubFuncs.BaseName)
+}
+if ( [set] $aliases -ne [set] $manifestData.ExportedAliases.Keys) {
+    $updateParams.Add('AliasesToExport', $aliases)
+}
+if ($updateParams.Count -gt 0) {
+    $updateParams.Add('Path', $manifestFile)
+    $updateParams.Add('ErrorAction', 'Stop')
     try {
-        $updateModuleManifestParams = @{}
-        $updateModuleManifestParams.Add('Path', $manifest)
-        $updateModuleManifestParams.Add('ErrorAction', 'Stop')
-        if ($aliases.Count -gt 0) {
-            $updateModuleManifestParams.Add('AliasesToExport', $aliases)
-        }
-        if ($publicFunctions.Count -gt 0) {
-            $updateModuleManifestParams.Add('FunctionsToExport', $publicFunctions.BaseName)
-        }
-        Update-ModuleManifest @updateModuleManifestParams
+        Update-ManifestFile @updateParams
     }
     catch {
-        $_ | Write-Error
+        $log = "Failed to update module manifest: " + $_.Exception.Message
+        Write-Error $log
     }
 }
 

@@ -12,13 +12,27 @@ function Invoke-MockWebRequest {
     $endpoint = $URI.Split('?')[0]
 
     $results = switch -Wildcard ($endpoint) {
-        "https://accounts.spotify.com/authorize"        { Invoke-MockAuthorize @PSBoundParameters }
-        "https://accounts.spotify.com/api/token"        { Invoke-MockToken     @PSBoundParameters }
-        "https://api.spotify.com/v1/me/tracks"          { Invoke-MockTracks    @PSBoundParameters }
-        "https://api.spotify.com/v1/me/playlists"       { Invoke-MockPlaylists @PSBoundParameters }
-        "https://api.spotify.com/v1/playlists/*/tracks" { Invoke-MockTracks    @PSBoundParameters }
-        "https://api.spotify.com/v1/search"             { Invoke-MockSearch    @PSBoundParameters }
-        Default                                         { throw "Endpoint $endpoint un-mocked" }
+        $script:AUTH_URI {
+          Invoke-MockAuthorize @PSBoundParameters
+        }
+        $script:TOKEN_URI {
+          Invoke-MockToken     @PSBoundParameters
+        }
+        $script:MYTRACKS_URI {
+          Invoke-MockTracks    @PSBoundParameters
+        }
+        $script:MYPLAYLISTS_URI {
+          Invoke-MockPlaylists @PSBoundParameters
+        }
+        "${script:MYPLAYLISTS_URI}/*/tracks" {
+          Invoke-MockTracks    @PSBoundParameters
+        }
+        $script:SEARCH_URI {
+          Invoke-MockSearch    @PSBoundParameters
+        }
+        Default {
+          throw "Endpoint $endpoint un-mocked"
+        }
     }
 
     return $results
@@ -32,7 +46,9 @@ function Invoke-MockAuthorize {
         [boolean] $SkipHttpErrorCheck,
         [string]  $Method = 'GET'
     )
-    if ($Method -ne 'GET') { throw "Wrong HTTP method (Expected GET, got $Method)" }
+    if ($Method -ne 'GET') {
+      throw "Wrong HTTP method (Expected GET, got $Method)"
+    }
     $endpoint, $paramstring = $URI.Split('?')
     if ($paramstring) {
         $parameters = @{}
@@ -44,7 +60,7 @@ function Invoke-MockAuthorize {
         }
     }
     $requiredParams = @(
-        'client_id', 'response_type', 'redirect_uri', 
+        'client_id', 'response_type', 'redirect_uri',
         'code_challenge_method', 'code_challenge'
     )
     foreach ($param in $requiredParams) {
@@ -70,9 +86,12 @@ function Invoke-MockToken {
         [object]    $Body,
         [string]    $Method = 'GET'
     )
-    if ($Method -ne 'POST') { throw "Wrong HTTP method (Expected POST, got $Method)" }
-    if ($ContentType -ne 'application/x-www-form-urlencoded') { 
-        throw "Content-Type header must be equal to 'application/x-www-form-urlencoded'" 
+    if ($Method -ne 'POST') {
+      throw "Wrong HTTP method (Expected POST, got $Method)"
+    }
+    $expectedContentType = 'application/x-www-form-urlencoded'
+    if ($ContentType -ne $expectedContentType) {
+        throw "Content-Type header must be equal to '$expectedContentType'"
     }
     $requiredParams = @(
         'grant_type', 'code', 'redirect_uri', 'client_id', 'code_verifier'
@@ -85,7 +104,7 @@ function Invoke-MockToken {
     return @{
         StatusCode = 200
         Content    = @{
-            access_token  = 'mockedtoken' 
+            access_token  = 'mockedtoken'
             token_type    = 'Bearer'
             scope         = 'mockedscopes'
             expires_in    = 3600
@@ -94,7 +113,7 @@ function Invoke-MockToken {
     }
 }
 
-# normally used to open the Spotify authentication dialog in user's browser, 
+# normally used to open the Spotify authentication dialog in user's browser,
 # which then redirects to the specified URI with a token
 function Start-MockProcess {
     param (
@@ -116,12 +135,15 @@ function Get-MockContent {
     param (
         [string] $Path
     )
+    $mockCID = 'mockedclientid'
+    $mockRURI = 'http://localhost:8080'
+    $mockResponse = "{""ClientId"":""$mockCID"",""RedirectURI"":""$mockRURI""}"
     switch ($Path) {
         { $_ -match ".*.env.json" } {
-            return '{ "ClientID" : "mockedclientid", "RedirectURI" : "http://localhost:8080" }'
+            return $mockResponse
         }
         "mockfile.json" {
-            return '{ "ClientID" : "mockedclientid", "RedirectURI" : "http://localhost:8080" }'
+            return $mockResponse
         }
         Default {
             return [System.IO.File]::ReadAllText($Path)
@@ -254,7 +276,7 @@ function Invoke-MockTracks {
         [string]    $ContentType,
         [string]    $Method = 'GET'
     )
-    $authorized = ($Headers.ContainsKey('Authorization') -and 
+    $authorized = ($Headers.ContainsKey('Authorization') -and
                    $Headers.Authorization -match 'Bearer *')
     if (! $authorized) {
         throw 'Authorization header invalid'
@@ -354,7 +376,7 @@ function Invoke-MockPlaylists {
         [string]    $URI,
         [hashtable] $Headers
     )
-    $authorized = ($Headers.ContainsKey('Authorization') -and 
+    $authorized = ($Headers.ContainsKey('Authorization') -and
                    $Headers.Authorization -match 'Bearer *')
     if (! $authorized) {
         throw 'Authorization header invalid'
@@ -363,10 +385,10 @@ function Invoke-MockPlaylists {
     # prevent method from trying to retrieve another page of results
     $plists.next = $null
     # ensure the tracks href will trigger a mocked API
-    $plists.items[0].tracks.href = "https://api.spotify.com/v1/playlists/$([guid]::NewGuid())/tracks"
+    $href = "https://api.spotify.com/v1/playlists/$([guid]::NewGuid())/tracks"
+    $plists.items[0].tracks.href = $href
     # make array more than one item long to prevent PS unpacking
     $plists.items = @($plists.items[0], $plists.items[0])
-
     return @{
         StatusCode = 200
         Content    = $plists | ConvertTo-Json -Depth 100
@@ -379,7 +401,7 @@ function Invoke-MockSearch {
         [string]    $URI,
         [hashtable] $Headers
     )
-    $authorized = ($Headers.ContainsKey('Authorization') -and 
+    $authorized = ($Headers.ContainsKey('Authorization') -and
                    $Headers.Authorization -match 'Bearer *')
     if (! $authorized) {
         throw 'Authorization header invalid'
