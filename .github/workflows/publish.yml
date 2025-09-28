@@ -2,17 +2,6 @@ name: Publish module
 
 on:
   workflow_dispatch:
-  push:
-    paths:
-      - "**/*.ps1"
-      - "**/*.psm1"
-      - "**/*.psd1"
-      - "Public/**"
-      - "Private/**"
-    branches:
-      - 'main'
-    tags-ignore:
-      - "v*"
 
 permissions:
   checks: write
