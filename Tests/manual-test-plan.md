@@ -22,8 +22,13 @@ $tracks = Get-SpotifyTracks
 ```
 no output args. Spot check output.
 
-```
+```powershell
 Get-SpotifyTracks -OutputFormat json -OutputFile ~\Desktop\songs.json
+```
+Spot check output.
+
+```powershell
+Get-SpotifyTracks -OutputFormat csv -OutputFolder ~\Desktop\
 ```
 Spot check output.
 
