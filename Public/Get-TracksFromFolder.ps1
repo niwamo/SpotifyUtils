@@ -20,26 +20,30 @@ function Get-TracksFromFolder {
             (Test-Path $_) -and ((Get-Item $_) -is [System.IO.DirectoryInfo])
         })]
         [Parameter(Mandatory=$true, ValueFromPipeline=$true, Position=0)]
-        [string] $Path 
+        [string] $Path
     )
     $sh = New-Object -ComObject Shell.Application
     $folder = $sh.NameSpace((Get-Item -Path $Path).FullName)
     $properties = @{}
-    for ($i = 0; $i -lt 400; $i++) { 
+    for ($i = 0; $i -lt 400; $i++) {
         $name = $folder.GetDetailsOf($null, $i)
         if ($name) { $properties.$name = $i }
     }
+    $titleProp = $properties.Title
+    $albumProp = $properties.Album
+    $artistProp = $properties['Contributing artists']
     $tracks = [System.Collections.ArrayList]::new()
     foreach ($songFile in (Get-ChildItem -Path $Path -File)) {
         Write-Debug "Processing $($songFile.name)"
         $file = $folder.ParseName($songFile.name)
+        # Mimic the structure of a track returned by the Spotify API
         $tracks.Add(@{
-            name = $folder.GetDetailsOf($file, $properties.Title)
+            name = $folder.GetDetailsOf($file, $titleProp)
             album = @{
-                name = $folder.GetDetailsOf($file, $properties.Album)
+                name = $folder.GetDetailsOf($file, $albumProp)
             }
             artists = @{
-                name = $folder.GetDetailsOf($file, $properties.'Contributing artists')
+                name = $folder.GetDetailsOf($file, $artistProp)
             }
         }) | Out-Null
     }

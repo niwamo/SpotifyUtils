@@ -1,6 +1,6 @@
 InModuleScope SpotifyUtils {
     BeforeAll {
-        Mock Invoke-AuthorizationPKCEFlow -MockWith { 
+        Mock Invoke-AuthorizationPKCEFlow -MockWith {
             param ( [string[]] $Scopes )
             $script:TOKENS.Add(@{
                 token      = [guid]::NewGuid()

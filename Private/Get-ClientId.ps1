@@ -1,25 +1,15 @@
 function Get-ClientId {
     param( [hashtable] $Params )
-    $config = @{}
-    if (! $Params.ClientId) {
-        if (! $Params.ConfigFile) {
-            $pathExists = $false
-        }
-        else {
-            $pathExists = Test-Path $Params.ConfigFile -ErrorAction SilentlyContinue
-        }
-        $cFile = if ($pathExists) { $Params.ConfigFile } else { $script:CONFIGFILE }
-        try {
-            $config = Get-Content -Path $cFile | ConvertFrom-Json
-        } catch {}  # to be handled later on
+    if ($Params.ClientId) { return $Params.ClientId }
+    $cPath = $script:CONFIGFILE
+    if ($Params.ConfigFile) { $cPath = $Params.ConfigFile }
+    try {
+        $config = Get-Content -Path $cPath | ConvertFrom-Json
+        if ($config.ClientId) { return $config.ClientId } else { throw }
     }
-    $cId = if ($Params.ClientId) { $Params.ClientId } else { $config.ClientId }
-    if (! $cId) {
-        throw (
-            "Could not find ClientId via command-line parameter, " +
-            "ConfigFile (passed as parameter), or default Configfile location" + 
-            "($script:CONFIGFILE)"
-        )
+    catch {
+        'Could not find ClientId via `-ClientId` or `-ConfigFile` parameters ' +
+        'or the default ConfigFile location (' + $script:CONFIGFILE + '). ' +
+        "Try Set-SpotifyUtilsConfig or review the docs at $script:PROJECT_URL"
     }
-    return $cId
 }

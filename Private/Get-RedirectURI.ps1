@@ -1,25 +1,16 @@
 function Get-RedirectURI {
     param( [hashtable] $Params )
-    $config = @{}
-    if (! $Params.RedirectURI) {
-        if (! $Params.ConfigFile) {
-            $pathExists = $false
-        }
-        else {
-            $pathExists = Test-Path $Params.ConfigFile -ErrorAction SilentlyContinue
-        }
-        $cFile = if ($pathExists) { $Params.ConfigFile } else { $script:CONFIGFILE }
-        try {
-            $config = Get-Content -Path $cFile | ConvertFrom-Json
-        } catch {}  # to be handled later on
+    if ($Params.RedirectURI) { return $Params.RedirectURI }
+    $cPath = $script:CONFIGFILE
+    if ($Params.ConfigFile) { $cPath = $Params.ConfigFile }
+    try {
+        $config = Get-Content -Path $cPath | ConvertFrom-Json
+        if ($config.RedirectURI) { return $config.RedirectURI } else { throw }
     }
-    $rURI = if ($Params.RedirectURI) { $Params.RedirectURI } else { $config.RedirectURI }
-    if (! $rURI) {
-        throw (
-            "Could not find RedirectURI via command-line parameter, " +
-            "ConfigFile (passed as parameter), or default Configfile location" + 
-            "($script:CONFIGFILE)"
-        )
+    catch {
+        'Could not find RedirectURI via `-RedirectURI` or `-ConfigFile` ' +
+        'parameters or the default ConfigFile location (' + $script:CONFIGFILE +
+        '). Try Set-SpotifyUtilsConfig or review the docs at ' +
+        $script:PROJECT_URL
     }
-    return $rURI
 }

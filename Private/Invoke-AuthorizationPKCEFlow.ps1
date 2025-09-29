@@ -4,7 +4,8 @@ class SpotifyToken {
     [datetime] $expiration
 }
 
-# reference: https://developer.spotify.com/documentation/web-api/tutorials/code-pkce-flow
+# reference:
+# https://developer.spotify.com/documentation/web-api/tutorials/code-pkce-flow
 function Invoke-AuthorizationPKCEFlow {
     [CmdletBinding()]
     param (
@@ -27,12 +28,15 @@ function Invoke-AuthorizationPKCEFlow {
     $rURI = Get-RedirectURI -Params $PSBoundParameters
 
     # generate code verifier
-    $possible = [string[]][char[]]('ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789')
-    $verifier = [String]::Join("", (Get-Random -Count 128 -InputObject $possible))
+    $possible = [string[]][char[]](
+        'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789'
+    )
+    $verifier = [String]::Join(
+        "", (Get-Random -Count 128 -InputObject $possible)
+    )
     $bytes = [System.Text.Encoding]::UTF8.GetBytes($verifier)
     $hasher = [System.Security.Cryptography.SHA256]::Create()
     $hashBytes = $hasher.ComputeHash($bytes)
-    #$hash = [System.BitConverter]::ToString($hashBytes).Replace('-','').ToLower()
     # https://stackoverflow.com/questions/63482575/
     $b64hash = [System.Convert]::ToBase64String($hashBytes).
         Replace('=', '').
@@ -48,10 +52,13 @@ function Invoke-AuthorizationPKCEFlow {
         code_challenge_method = 'S256'
         code_challenge        = $b64hash
     }
-    $uParams = foreach ($param in $urlParams.Keys) { 
-        [string]::Format( "{0}={1}", $param, $urlParams.$param ) 
+    $uParams = foreach ($param in $urlParams.Keys) {
+        [string]::Format( "{0}={1}", $param, $urlParams.$param )
     }
-    $uri = [string]::Format("{0}?{1}", $script:AUTH_URI, [string]::Join("&", $uParams))
+    $uri = [string]::Format(
+        "{0}?{1}",
+        $script:AUTH_URI, [string]::Join("&", $uParams)
+    )
 
     $params = @{
         URI = $uri
@@ -81,7 +88,11 @@ function Invoke-AuthorizationPKCEFlow {
             $response = $context.Response
             $response.StatusCode = 200
             $response.ContentType = 'text/html'
-            $data = '<html><head><script>window.close();</script></head><body>Hello! Goodbye!</body></html>'
+            $data = `
+                '<html>
+                <head><script>window.close();</script></head>
+                <body>Hello! Goodbye!</body>
+                </html>'
             $buffer = [System.Text.Encoding]::UTF8.GetBytes($data)
             $response.ContentLength64 = $buffer.Length
             $response.OutputStream.Write($buffer, 0, $buffer.Length)
@@ -99,8 +110,12 @@ function Invoke-AuthorizationPKCEFlow {
     $pinfo.RedirectStandardOutput = $true
     $pinfo.UseShellExecute = $false
     $pinfo.Arguments = @(
-        "-NonInteractive", 
-        "-Command", [string]::Format("{0}`n{1}", "`$rURI = '$rURI'", $sb.ToString()))
+        "-NonInteractive",
+        "-Command", [string]::Format(
+            "{0}`n{1}",
+            "`$rURI = '$rURI'", $sb.ToString()
+        )
+    )
     $p = New-Object System.Diagnostics.Process
     $p.StartInfo = $pinfo
     $p.Start() | Out-Null

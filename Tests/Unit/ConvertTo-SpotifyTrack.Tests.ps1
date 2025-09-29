@@ -6,7 +6,8 @@ InModuleScope SpotifyUtils {
         It "Should return ClientId if passed in directly" {
             $raw = (Get-TrackSample | ConvertFrom-Json).items.track
             $track = ConvertTo-SpotifyTrack -Tracks $raw
-            $track | ConvertTo-Json -Compress | Should -Be $(Get-TrackConvertedSample)
+            $jsonTrack = $track | ConvertTo-Json -Compress
+            $jsonTrack | Should -Be $(Get-TrackConvertedSample)
         }
     }
     Describe "ConvertTo-SpotifyTrack" {
