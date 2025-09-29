@@ -89,15 +89,42 @@ jobs:
           git fetch --all
           gh pr merge $PR_NUMBER --merge --delete-branch
 
+  tag-and-release:
+    name: Auto tag and release
+    needs: [versioning, auto-merge]
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@ff7abcd0c3c05ccf6adc123a8cd1fd4fb30fb493
+        with:
+          ref: 'main'
+
+      - name: release
+        shell: pwsh
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $manifestPath = (Get-ChildItem -Path . -Filter "*.psd1").FullName
+          $manifestData = Test-ModuleManifest -Path $manifestPath
+          if ($manifestData.Version.Build -ne 0) { exit }
+          git fetch --all
+          $tag = "v" + $manifestData.Version.ToString()
+          git config --global user.name "github-actions"
+          git config --global user.email "github-actions@not-a-real-email.org"
+          git tag $tag
+          git push origin $tag
+          Start-Sleep -Seconds 2
+          gh release create $tag --verify-tag --fail-on-no-commits
+
   publish:
     name: Publish module
-    needs: [auto-merge]
+    needs: [versioning, auto-merge]
     runs-on: ubuntu-latest
     
     steps:
       - uses: actions/checkout@ff7abcd0c3c05ccf6adc123a8cd1fd4fb30fb493
         with:
-          # https://github.com/actions/checkout/issues/317#issuecomment-737107262
           ref: 'main'
 
       - name: publish
