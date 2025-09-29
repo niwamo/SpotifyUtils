@@ -123,7 +123,7 @@ function Add-SpotifyTracks {
             }
             $top = $results.tracks.items[0]
             # CHECK MATCH
-            $match = $true  
+            $match = $true
             $comparisons = @(
                 @($song.name, $top.name),
                 @($song.artists[0], $top.artists[0].name)

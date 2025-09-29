@@ -144,7 +144,7 @@ function Get-SpotifyPlaylists {
             ).Content | ConvertFrom-Json
             # add to array
             try {
-                $responseTracks = $response.items.track | 
+                $responseTracks = $response.items.track |
                     Where-Object -FilterScript { $null -ne $_ }
                 $newTracks = ConvertTo-SpotifyTrack -Tracks $responseTracks
                 $tracks.AddRange($newTracks) | Out-Null
@@ -156,7 +156,7 @@ function Get-SpotifyPlaylists {
                 )
                 Write-Warning $warnMsg
                 Write-Debug (
-                    "response data was:`n" + 
+                    "response data was:`n" +
                     $response | ConvertTo-Json -Depth 10
                 )
                 break

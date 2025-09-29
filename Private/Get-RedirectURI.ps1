@@ -10,7 +10,7 @@ function Get-RedirectURI {
     catch {
         'Could not find RedirectURI via `-RedirectURI` or `-ConfigFile` ' +
         'parameters or the default ConfigFile location (' + $script:CONFIGFILE +
-        '). Try Set-SpotifyUtilsConfig or review the docs at ' + 
+        '). Try Set-SpotifyUtilsConfig or review the docs at ' +
         $script:PROJECT_URL
     }
 }
