@@ -58,16 +58,14 @@ The authentication process for this module requries exactly two inputs:
 `ClientId` and `RedirectURI`. These must match what you configured for your app
 in the Spotify developer portal.
 
-You may provide these values as inputs to any of the functions requiring
-authentication via:
-- the `-ClientId <Value>` and `-RedirectURI <Value>` parameters
-- a `.env.json` configuration file in the module's root directory
-  (it will be automatically discovered, no parameters required)
-- any JSON configuration file when providing the path to that file via
-  `-ConfigFile <Path>`
+You may provide these values via:
 
-If using a JSON configuration file, see the "Initial Setup" section for the
-expected format.
+- `Set-SpotifyUtilsConfig` (required only once)
+- the `-ClientId <Value>` and `-RedirectURI <Value>` parameters (required every
+  time a new token is requested)
+- a JSON configuration file via `-ConfigFile <Path>`, which must contain
+  `ClientId` and `RedirectUri` properties (required every time a new token is
+  requested)
 
 ## Functions
 
@@ -85,7 +83,7 @@ This module provides the following functions for interacting with Spotify:
   necessary to run the other commands, but will prevent needing to authenticate
   the script multiple for multiple OAuth scopes.
 
-It also provides the following utility commands for interacting with the module:
+It also provides the following utility commands:
 
 - `Get-SpotifyUtilsConfig` - Retrieve the module's current configuration (see
   Setup section)
