@@ -31,15 +31,9 @@ Update-Module SpotifyUtils
      - 'Which API/SDKs are you planning to use?' --> select 'Web API'
      - Redirect URIs --> 'http://localhost:8080'
        - Note: `http://localhost` is important, the port is not
-2. Clone this repository
-3. (Optional) Create a `.env.json` config file inside the cloned repository
-
-```json:Example .env.json
-{
-    "ClientId": "",
-    "RedirectURI": "http://localhost:8080/"
-}
-```
+2. Install this module, using the instructions from the Installation section
+3. Configure the module's `ClientId` and `RedirectUri` parameters using
+   `Set-SpotifyUtilsConfig`
 
 The client ID can viewed by selecting your app from the Spotify
 [Developer Dashboard](https://developer.spotify.com/dashboard).
@@ -77,7 +71,7 @@ expected format.
 
 ## Functions
 
-This module provides the following functions:
+This module provides the following functions for interacting with Spotify:
 
 - `Add-SpotifyTracks` - Accepts a list of tracks and searches for them on
   Spotify, adding them to your liked songs if found.
@@ -90,6 +84,16 @@ This module provides the following functions:
 - `Start-SpotifySession` - Used to authenticate the PowerShell module. Not
   necessary to run the other commands, but will prevent needing to authenticate
   the script multiple for multiple OAuth scopes.
+
+It also provides the following utility commands for interacting with the module:
+
+- `Get-SpotifyUtilsConfig` - Retrieve the module's current configuration (see
+  Setup section)
+- `Set-SpotifyUtilsConfig` - Set the module's configuration (see Setup section)
+- `Export-SpotifyTokens` - Export all Spotify API authentication tokens
+  currently cached by the module
+- `Import-SpotifyTokens` - Re-import Spotify API authentication tokens
+  previously exported using `Export-SpotifyTokens`
 
 All commands can be listed by importing the module (
 `Import-Module SpotifyUtils`) and running `Get-Command -Module SpotifyUtils`.
