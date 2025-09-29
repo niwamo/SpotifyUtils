@@ -49,8 +49,15 @@ if ($updateParams.Count -gt 0) {
 }
 
 # Module-Level Variables
+$moduleName = [System.IO.Path]::GetFileNameWithoutExtension($PSCommandPath)
+# ~\AppData\Local on Windows, ~/.local/share on Linux
+$localConfigFolder = [System.Environment]::GetFolderPath(
+    [System.Environment+SpecialFolder]::LocalApplicationData
+)
+$script:CONFIGDIR  = [System.IO.Path]::Join($localConfigFolder, $moduleName)
+$script:CONFIGFILE = [System.IO.Path]::Join($script:CONFIGDIR, "config.json")
+
 $script:PROJECT_URL     = 'https://github.com/niwamo/SpotifyUtils'
-$script:CONFIGFILE      = "$PSScriptRoot\.env.json"
 
 $script:AUTH_URI        = 'https://accounts.spotify.com/authorize'
 $script:TOKEN_URI       = 'https://accounts.spotify.com/api/token'
@@ -59,11 +66,14 @@ $script:MYTRACKS_URI    = "$script:BASE_URI/me/tracks"
 $script:MYPLAYLISTS_URI = "$script:BASE_URI/me/playlists"
 $script:SEARCH_URI      = "$script:BASE_URI/search"
 
-$script:API_DELAY       = 250 # milliseconds between API calls (avoid rate limiting)
+# milliseconds between API calls (avoid rate limiting)
+$script:API_DELAY       = 250 
 
 $script:TOKENS          = [System.Collections.ArrayList]::New()
-$script:ALL_SCOPES      = @('playlist-read-private', 'playlist-read-collaborative',
-                            'user-library-read', 'user-library-modify')
+$script:ALL_SCOPES      = @('playlist-read-private',
+                            'playlist-read-collaborative',
+                            'user-library-read',
+                            'user-library-modify')
 
 $ESC                    = [char]27
 $script:GREEN           = "$ESC[35;92m"
