@@ -70,7 +70,9 @@ function ConvertTo-SpotifyTrack {
     }
     if (! $results) { return }
     $numFailed = $Tracks.Count - $results.Count
-    $unique = [SpotifyTrack[]] ( [System.Collections.Generic.HashSet[SpotifyTrack]] $results )
+    $unique = [SpotifyTrack[]] ( 
+        [System.Collections.Generic.HashSet[SpotifyTrack]] $results
+    )
     $numDuplicates = $results.Count - $unique.Count
     Write-Debug (
         "ConvertTo-SpotifyTrack: Converted $($unique.Count) " +

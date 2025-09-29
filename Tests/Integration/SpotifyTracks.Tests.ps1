@@ -14,9 +14,12 @@ InModuleScope SpotifyUtils {
         It "with Start-SpotifySession and no output format" {
             Start-SpotifySession
             $tracks = Get-SpotifyTracks
-            [string] $tracks.GetType() | Should -Be 'System.Collections.ArrayList'
-            $baseline = ConvertTo-SpotifyTrack (Get-TrackSample | ConvertFrom-Json).Items.Track
-            ($tracks[0] | ConvertTo-Json) | Should -Be ($baseline | ConvertTo-Json)
+            $expectedType = 'System.Collections.ArrayList'
+            [string] $tracks.GetType() | Should -Be $expectedType
+            $inputData = (Get-TrackSample | ConvertFrom-Json).Items.Track
+            $baseline = ConvertTo-SpotifyTrack $inputData
+            $expectedOutput = $baseline | ConvertTo-Json
+            ($tracks[0] | ConvertTo-Json) | Should -Be $expectedOutput
             $script:TOKENS.Count | Should -Be 1
             $script:TOKENS[0].scopes | Should -Be $script:ALL_SCOPES
         }

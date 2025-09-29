@@ -36,7 +36,8 @@ function Get-SpotifyToken {
     catch {
         throw (
             "There was a problem authenticating to the Spotify API.`n" +
-            "Please review the Authentication section at $script:PROJECT_URL.`n" +
+            "Please review the Authentication section at " + 
+            $script:PROJECT_URL + ".`n" +
             "Error message: " + $_.Exception.Message
         )
     }
