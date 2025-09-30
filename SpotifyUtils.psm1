@@ -52,7 +52,7 @@ if ($updateParams.Count -gt 0) {
     $updateParams.Add('Path', $manifestFile)
     $updateParams.Add('ErrorAction', 'Stop')
     try {
-        Update-ManifestFile @updateParams
+        Update-ModuleManifest @updateParams
     }
     catch {
         $log = "Failed to update module manifest: " + $_.Exception.Message
