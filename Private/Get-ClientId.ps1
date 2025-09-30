@@ -8,8 +8,10 @@ function Get-ClientId {
         if ($config.ClientId) { return $config.ClientId } else { throw }
     }
     catch {
-        'Could not find ClientId via `-ClientId` or `-ConfigFile` parameters ' +
-        'or the default ConfigFile location (' + $script:CONFIGFILE + '). ' +
-        "Try Set-SpotifyUtilsConfig or review the docs at $script:PROJECT_URL"
+        throw (
+            'Could not find ClientId via `-ClientId` or `-ConfigFile` parameters ' +
+            'or the default ConfigFile location (' + $script:CONFIGFILE + '). ' +
+            "Try Set-SpotifyUtilsConfig or review the docs at $script:PROJECT_URL"
+        )
     }
 }

@@ -8,9 +8,11 @@ function Get-RedirectURI {
         if ($config.RedirectURI) { return $config.RedirectURI } else { throw }
     }
     catch {
-        'Could not find RedirectURI via `-RedirectURI` or `-ConfigFile` ' +
-        'parameters or the default ConfigFile location (' + $script:CONFIGFILE +
-        '). Try Set-SpotifyUtilsConfig or review the docs at ' +
-        $script:PROJECT_URL
+        throw (
+            'Could not find RedirectURI via `-RedirectURI` or `-ConfigFile` ' +
+            'parameters or the default ConfigFile location (' + $script:CONFIGFILE +
+            '). Try Set-SpotifyUtilsConfig or review the docs at ' +
+            $script:PROJECT_URL
+        )
     }
 }
