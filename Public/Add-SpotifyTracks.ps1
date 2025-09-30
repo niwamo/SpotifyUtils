@@ -158,7 +158,7 @@ function Add-SpotifyTracks {
             $added += 1
         }
 
-        Write-Output "${script:GREEN}Added $added songs${script:RESET_ANSI}"
+        Write-Output "${script:GREEN}Added $added songs${script:RESETANSI}"
 
         if ($missing.Count) {
             $msg = [string]::Format(
