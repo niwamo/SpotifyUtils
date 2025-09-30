@@ -44,7 +44,7 @@ $aliasSet =
 $manifestAliasSet = 
     [System.Collections.Generic.HashSet[string]] $manifestData.ExportedAliases.Keys
 
-if (! $aliasSet.SeqEquals($manifestAliasSet)) {
+if (! $aliasSet.SetEquals($manifestAliasSet)) {
     $updateParams.Add('AliasesToExport', $aliases)
 }
 
