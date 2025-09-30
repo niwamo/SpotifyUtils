@@ -30,12 +30,24 @@ foreach ($func in $pubFuncs) {
 
 # Update manifest
 $updateParams = @{}
-if ( [set] $pubFuncs.BaseName -ne [set] $manifestData.ExportedFunctions.Keys) {
+$pubFuncsSet = 
+    [System.Collections.Generic.HashSet[string]] $pubFuncs.BaseName
+$manifestFuncsSet = 
+    [System.Collections.Generic.HashSet[string]] $manifestData.ExportedFunctions.Keys
+
+if (! $pubFuncsSet.SetEquals($manifestFuncsSet)) {
     $updateParams.Add('FunctionsToExport', $pubFuncs.BaseName)
 }
-if ( [set] $aliases -ne [set] $manifestData.ExportedAliases.Keys) {
+
+$aliasSet = 
+    [System.Collections.Generic.HashSet[string]] $aliases
+$manifestAliasSet = 
+    [System.Collections.Generic.HashSet[string]] $manifestData.ExportedAliases.Keys
+
+if (! $aliasSet.SeqEquals($manifestAliasSet)) {
     $updateParams.Add('AliasesToExport', $aliases)
 }
+
 if ($updateParams.Count -gt 0) {
     $updateParams.Add('Path', $manifestFile)
     $updateParams.Add('ErrorAction', 'Stop')
