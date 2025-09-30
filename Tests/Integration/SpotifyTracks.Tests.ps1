@@ -28,7 +28,7 @@ InModuleScope SpotifyUtils {
         It "with Start-SpotifySession and no output format" {
             Start-SpotifySession
             $returnValue = Add-SpotifyTracks -Tracks $(Get-SpotifyTracks)
-            $returnValue | Should -Be $null
+            $returnValue | Should -Match ".*Added 1 songs.*"
             $script:TOKENS.Count | Should -Be 1
             $script:TOKENS[0].scopes | Should -Be $script:ALL_SCOPES
         }

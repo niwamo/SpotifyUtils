@@ -12,23 +12,29 @@ function Invoke-MockWebRequest {
     $endpoint = $URI.Split('?')[0]
 
     $results = switch -Wildcard ($endpoint) {
-        $script:AUTH_URI {
+        'https://accounts.spotify.com/authorize' {
           Invoke-MockAuthorize @PSBoundParameters
+          break
         }
-        $script:TOKEN_URI {
+        'https://accounts.spotify.com/api/token' {
           Invoke-MockToken     @PSBoundParameters
+          break
         }
-        $script:MYTRACKS_URI {
+        'https://api.spotify.com/v1/me/tracks' {
           Invoke-MockTracks    @PSBoundParameters
+          break
         }
-        $script:MYPLAYLISTS_URI {
+        'https://api.spotify.com/v1/me/playlists' {
           Invoke-MockPlaylists @PSBoundParameters
+          break
         }
-        "${script:MYPLAYLISTS_URI}/*/tracks" {
+        'https://api.spotify.com/v1/playlists/*/tracks' {
           Invoke-MockTracks    @PSBoundParameters
+          break
         }
-        $script:SEARCH_URI {
+        'https://api.spotify.com/v1/search' {
           Invoke-MockSearch    @PSBoundParameters
+          break
         }
         Default {
           throw "Endpoint $endpoint un-mocked"
@@ -140,6 +146,9 @@ function Get-MockContent {
     $mockResponse = "{""ClientId"":""$mockCID"",""RedirectURI"":""$mockRURI""}"
     switch ($Path) {
         { $_ -match ".*.env.json" } {
+            return $mockResponse
+        }
+        { $_ -match ".*config.json" } {
             return $mockResponse
         }
         "mockfile.json" {
@@ -290,7 +299,7 @@ function Invoke-MockTracks {
         $tracks.items = @($tracks.items[0], $tracks.items[0])
         $result = @{
             StatusCode = 200
-            Content    = $tracks | ConvertTo-Json -Depth 10
+            Content    = $($tracks | ConvertTo-Json -Depth 10)
         }
     }
     elseif ($Method -eq 'PUT') {
@@ -305,7 +314,7 @@ function Invoke-MockTracks {
     else {
       throw "Invalid method ($method) for URI ($URI)"
     }
- 
+        
     return $result
 }
 

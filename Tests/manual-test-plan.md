@@ -23,9 +23,6 @@ Start-SpotifySession
 # Manually validate results.
 Get-TracksFromFolder -Path <PATH>
 
-# no output args. Spot check output.
-$tracks = Get-SpotifyTracks
-
 # Spot check output.
 Get-SpotifyTracks -OutputFormat json -OutputFile ~\Desktop\songs.json
 
