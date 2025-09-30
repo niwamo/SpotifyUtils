@@ -187,7 +187,7 @@ function Get-SpotifyPlaylists {
         }
         if ($OutputFolder) {
             $tstamp = Get-Date -Format "yyyy-MM-dd-HH-mm-ss"
-            $fpath  = [System.IO.Path]::Join(
+            $fpath  = [System.IO.Path]::Combine(
                 $OutputFolder, "$tstamp-playlist-export.json"
             )
             Set-Content -Path $fpath -Encoding 'UTF8' -Value $out
@@ -201,7 +201,7 @@ function Get-SpotifyPlaylists {
         # case where OutputFolder is NOT provided is handled at top of function
         $tstamp = Get-Date -Format "yyyy-MM-dd-HH-mm-ss"
         $outdir = "$tstamp-playlist-export"
-        $dPath = [System.IO.Path]::Join($OutputFolder, $outdir)
+        $dPath = [System.IO.Path]::Combine($OutputFolder, $outdir)
         New-Item -ItemType Directory -Path $dPath | Out-Null
         $numUnnamed = 0
         foreach ($plist in $playlistData) {
@@ -217,7 +217,7 @@ function Get-SpotifyPlaylists {
                 $numUnnamed += 1
             }
             Write-Debug "plist.name was $($plist.Name), safeName is $safeName"
-            $fpath  = [System.IO.Path]::Join(
+            $fpath  = [System.IO.Path]::Combine(
                 $OutputFolder, $outdir, "$safeName.csv"
             )
             $out = Convert-TracksToCsv -Tracks $plist.Tracks
