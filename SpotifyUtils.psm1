@@ -66,8 +66,8 @@ $moduleName = [System.IO.Path]::GetFileNameWithoutExtension($PSCommandPath)
 $localConfigFolder = [System.Environment]::GetFolderPath(
     [System.Environment+SpecialFolder]::LocalApplicationData
 )
-$script:CONFIGDIR  = [System.IO.Path]::Join($localConfigFolder, $moduleName)
-$script:CONFIGFILE = [System.IO.Path]::Join($script:CONFIGDIR, "config.json")
+$script:CONFIGDIR  = [System.IO.Path]::Combine($localConfigFolder, $moduleName)
+$script:CONFIGFILE = [System.IO.Path]::Combine($script:CONFIGDIR, "config.json")
 
 $script:PROJECT_URL     = 'https://github.com/niwamo/SpotifyUtils'
 
