@@ -97,9 +97,7 @@ function Get-SpotifyTracks {
     $savedTracks = [System.Collections.ArrayList]::New()
 
     $uri = "${script:MYTRACKS_URI}?limit=50"
-    $counter = 1
     while ($true) {
-        $counter++
         $response = (
             Invoke-WebRequest -Uri $uri -Headers $headers
         ).Content | ConvertFrom-Json
@@ -126,7 +124,7 @@ function Get-SpotifyTracks {
         }
         if ($OutputFolder) {
             $tstamp = Get-Date -Format "yyyy-MM-dd-HH-mm-ss"
-            $fpath  = [System.IO.Path]::Join(
+            $fpath  = [System.IO.Path]::Combine(
                 $OutputFolder, "$tstamp-playlist-export.json"
             )
             Set-Content -Path $fpath -Encoding 'UTF8' -Value $out
@@ -145,7 +143,7 @@ function Get-SpotifyTracks {
         }
         if ($OutputFolder) {
             $tstamp = Get-Date -Format "yyyy-MM-dd-HH-mm-ss"
-            $fpath  = [System.IO.Path]::Join(
+            $fpath  = [System.IO.Path]::Combine(
                 $OutputFolder, "$tstamp-playlist-export.csv"
             )
             Set-Content -Path $fpath -Encoding 'UTF8' -Value $out

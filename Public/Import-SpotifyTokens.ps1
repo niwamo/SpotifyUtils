@@ -20,8 +20,8 @@ function Import-SpotifyTokens {
     }
 
     end {
+        $numFailed = 0
         foreach ($token in $inputData) {
-            $numFailed = 0
             try {
                 $script:TOKENS.Add([SpotifyToken] $token) | Out-Null
             }

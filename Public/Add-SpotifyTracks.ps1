@@ -99,6 +99,7 @@ function Add-SpotifyTracks {
         ##########################
 
         $missing = [System.Collections.ArrayList]::new()
+        $added = 0
         foreach ($song in $tracks) {
             # sleep at beginning in case of a 'continue'
             [System.Threading.Thread]::Sleep($script:API_DELAY)
@@ -135,7 +136,7 @@ function Add-SpotifyTracks {
                 if (! $match) { break }
             }
             # HANDLE MISSING MATCH
-            if (!not $match) {
+            if (! $match) {
                 $logMessage = [string]::Format(
                     "Could not find {0} by {1}, top result was {2} by {3}",
                     $song.name, $song.artists[0],
@@ -154,7 +155,10 @@ function Add-SpotifyTracks {
             }
             Invoke-WebRequest @params | Out-Null
             Write-Debug "Added $($song.name)"
+            $added += 1
         }
+
+        Write-Output "${script:GREEN}Added $added songs${script:RESETANSI}"
 
         if ($missing.Count) {
             $msg = [string]::Format(
