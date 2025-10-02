@@ -1,0 +1,74 @@
+name: Test PR
+
+on:
+  pull_request:
+    paths:
+      - "**/*.ps1"
+      - "**/*.psm1"
+      - "**/*.psd1"
+      - "Public/**"
+      - "Private/**"
+    branches:
+      - 'main'
+
+permissions:
+  actions: write
+  checks: write
+  contents: write
+  pull-requests: write
+
+jobs:
+  pester:
+    name: Run Pester tests
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@ff7abcd0c3c05ccf6adc123a8cd1fd4fb30fb493
+
+      - name: Run tests
+        shell: pwsh
+        run: |
+          Install-Module Pester -SkipPublisherCheck -Force
+          pwsh ./Tests/RunTests.ps1
+
+  versioning:
+    name: Increment version
+    needs: [pester]
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@ff7abcd0c3c05ccf6adc123a8cd1fd4fb30fb493
+        if: github.actor != 'github-actions'
+        with:
+          # https://github.com/actions/checkout/issues/317#issuecomment-737107262
+          ref: ${{ github.event.pull_request.head.ref }}
+
+      - name: Increment version
+        if: github.actor != 'github-actions'
+        shell: pwsh
+        run: |
+          $manifestPath = (Get-ChildItem -Path . -Filter "*.psd1").FullName
+          $module = Test-ModuleManifest -Path $manifestPath
+          $version = $module.version
+          $galleryModule = Find-Module -Name $module.Name -Repository PSGallery
+          $galleryVersion = [version]::parse($galleryModule.version)
+          if ($version -gt $galleryVersion) { exit }
+          $newVersion = [version]::new(
+            $galleryVersion.Major,
+            $galleryVersion.Minor,
+            $galleryVersion.Build + 1
+          )
+          Update-ModuleManifest -Path $manifestPath -ModuleVersion $newVersion
+
+      - name: Push changes
+        if: |
+          ${{ github.actor != 'github-actions' }} &&
+          ${{ github.event.pull_request.head.repo.full_name == github.event.pull_request.base.repo.full_name }}
+        shell: pwsh
+        run: |
+          git config --global user.name "github-actions"
+          git config --global user.email "github-actions@not-a-real-email.org"
+          git add -A
+          git commit -m "github-actions: increment module version"
+          git push
+  
