@@ -10,7 +10,7 @@ InModuleScope SpotifyUtils {
             $params = @{
                 Scopes      = @('mockedscope1', 'mockedscope2')
                 ClientId    = 'mockedclientid'
-                RedirectURI = 'http://localhost:8888'
+                RedirectURI = 'http://127.0.0.1:8888'
             }
             $token = Invoke-AuthorizationPKCEFlow @params
 
