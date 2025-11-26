@@ -29,8 +29,10 @@ Update-Module SpotifyUtils
    - [spotify docs](https://developer.spotify.com/documentation/web-api/tutorials/getting-started)
    - Important settings:
      - 'Which API/SDKs are you planning to use?' --> select 'Web API'
-     - Redirect URIs --> 'http://localhost:8080'
-       - Note: `http://localhost` is important, the port is not
+     - Redirect URIs --> 'http://127.0.0.1:8080'
+       - Note: `http://127.0.0.1` is important, the port is not
+       - Also note that Spotify
+         [does not allow 'localhost'](https://developer.spotify.com/documentation/web-api/concepts/redirect_uri)
 2. Install this module, using the instructions from the Installation section
 3. Configure the module's `ClientId` and `RedirectUri` parameters using
    `Set-SpotifyUtilsConfig`

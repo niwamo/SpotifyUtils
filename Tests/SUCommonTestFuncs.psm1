@@ -142,7 +142,7 @@ function Get-MockContent {
         [string] $Path
     )
     $mockCID = 'mockedclientid'
-    $mockRURI = 'http://localhost:8080'
+    $mockRURI = 'http://127.0.0.1:8080'
     $mockResponse = "{""ClientId"":""$mockCID"",""RedirectURI"":""$mockRURI""}"
     switch ($Path) {
         { $_ -match ".*.env.json" } {
